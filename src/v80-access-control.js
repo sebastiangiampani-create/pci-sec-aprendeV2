@@ -1,9 +1,9 @@
 (() => {
   const $=id=>document.getElementById(id);
-  const ROLES=new Set(['admin','teacher','student','family']);
+  const ROLES=new Set(['admin','coordinator','teacher','student','family']);
   const cleanDni=v=>String(v??'').replace(/\D/g,'');
   const norm=v=>String(v??'').trim().toLowerCase();
-  let session={role:'admin',teacherId:'',studentDnis:[],email:''};
+  let session={role:'admin',teacherId:'',studentDnis:[],email:'',coordinatorAreas:[]};
   let observer=null,timer=null,lastModuleSignature='';
 
   function root(){
@@ -69,28 +69,34 @@
     let teacherId=String(scope.teacherId||'');
     const email=String(scope.email||'').trim();
     if(role==='teacher'&&!teacherId&&email)teacherId=String(teacherByEmail(email)?.id||'');
+    const coordinatorAreas=Array.isArray(scope.coordinatorAreas)?[...new Set(scope.coordinatorAreas.map(v=>String(v||'').trim()).filter(Boolean))]:[];
     let studentDnis=Array.isArray(scope.studentDnis)?scope.studentDnis.map(cleanDni).filter(Boolean):[];
     if(role==='student'&&!studentDnis.length&&scope.studentDni)studentDnis=[cleanDni(scope.studentDni)].filter(Boolean);
     if(role==='student'&&!studentDnis.length&&email)studentDnis=studentDnisByEmail(email);
-    return {role,teacherId,studentDnis:[...new Set(studentDnis)],email};
+    return {role,teacherId,studentDnis:[...new Set(studentDnis)],email,coordinatorAreas};
   }
 
   function derivedAccess(scope=session){
     const role=scope.role;
     const areas=role==='teacher'?teacherAreasByOrientation(scope.teacherId):{};
     const commissionKeys=role==='teacher'?teacherCommissionKeys(scope.teacherId):[];
+    const coordinatorAreas=[...(scope.coordinatorAreas||[])];
+    const editableAreasByOrientation=role==='coordinator'?Object.fromEntries((state.selected||[]).map(o=>[o,[...coordinatorAreas]])):areas;
     return {
       role,
       teacherId:scope.teacherId,
       studentDnis:[...(scope.studentDnis||[])],
+      coordinatorAreas,
       allowedAreasByOrientation:areas,
+      editableAreasByOrientation,
       commissionKeys,
-      orientations:role==='admin'?[...(state.selected||[])]:role==='teacher'?Object.keys(areas):[]
+      orientations:['admin','coordinator'].includes(role)?[...(state.selected||[])]:role==='teacher'?Object.keys(areas):[]
     };
   }
 
   function canOpen(id,access=derivedAccess()){
     if(access.role==='admin')return true;
+    if(access.role==='coordinator')return ['home','panel','offer','proposal'].includes(id);
     if(access.role==='teacher'){
       if(['home','grading','bulletins','v78Attendance'].includes(id))return true;
       if(['panel','offer','proposal'].includes(id))return (access.allowedAreasByOrientation[state.active]||[]).length>0;
@@ -116,7 +122,9 @@
       card.hidden=!(access.allowedAreasByOrientation[orientation]||[]).length;
       card.querySelectorAll('.v48-course-config').forEach(x=>x.hidden=true);
     });
-    if(access.role==='admin')document.querySelectorAll('#pciList .pci-card,#pciList .v48-course-config').forEach(x=>x.hidden=false);
+    if(['admin','coordinator'].includes(access.role))document.querySelectorAll('#pciList .pci-card').forEach(x=>x.hidden=false);
+    if(access.role==='admin')document.querySelectorAll('#pciList .v48-course-config').forEach(x=>x.hidden=false);
+    if(access.role==='coordinator')document.querySelectorAll('#pciList .v48-course-config').forEach(x=>x.hidden=true);
     const hero=$('home')?.querySelector(':scope > .hero');
     if(hero&&family){
       const h1=hero.querySelector('h1');if(h1&&h1.textContent!=='Resultados académicos')h1.textContent='Resultados académicos';
@@ -131,12 +139,12 @@
 
   function applyOffer(access){
     const offer=$('offer');if(!offer)return;
-    const readOnly=access.role==='teacher';
+    const readOnly=['teacher','coordinator'].includes(access.role);
     offer.classList.toggle('v80-readonly-offer',readOnly);
     let banner=$('v80OfferReadonly');
     if(readOnly&&!banner){
       banner=document.createElement('div');banner.id='v80OfferReadonly';banner.className='v80-access-note';
-      banner.innerHTML='<strong>Mapa de la Oferta · solo lectura.</strong> Podés consultar la estructura. Los cambios curriculares quedan reservados a administración.';
+      banner.innerHTML='<strong>Mapa de la Oferta · solo lectura.</strong> Podés consultar la estructura. La edición curricular se realiza en Desarrollo Curricular según tu ámbito de permiso.';
       offer.querySelector('.hero')?.after(banner);
     }
     if(!readOnly)banner?.remove();
@@ -153,17 +161,19 @@
 
   function accessSignature(access){
     const areas=Object.fromEntries(Object.entries(access.allowedAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
-    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas});
+    const editable=Object.fromEntries(Object.entries(access.editableAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
+    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas,editable,coordinatorAreas:[...(access.coordinatorAreas||[])].sort()});
   }
 
   function applyModules(access,force=false){
     const signature=accessSignature(access);
     if(!force&&signature===lastModuleSignature)return;
     lastModuleSignature=signature;
-    window.PCIGradingV76?.setAccessScope?.({role:access.role,teacherId:access.teacherId});
-    window.PCIAttendanceV78?.setAccessScope?.({role:access.role,commissionKeys:access.commissionKeys});
-    window.PCIBulletinsV77?.setAccessScope?.({role:access.role,teacherId:access.teacherId,studentDnis:access.studentDnis,commissionKeys:access.commissionKeys});
-    window.PCIPhase2V28?.setAccessScope?.({role:access.role,teacherId:access.teacherId,allowedAreasByOrientation:access.allowedAreasByOrientation});
+    const legacyRole=access.role==='coordinator'?'teacher':access.role;
+    window.PCIGradingV76?.setAccessScope?.({role:legacyRole,teacherId:access.teacherId});
+    window.PCIAttendanceV78?.setAccessScope?.({role:legacyRole,commissionKeys:access.commissionKeys});
+    window.PCIBulletinsV77?.setAccessScope?.({role:legacyRole,teacherId:access.teacherId,studentDnis:access.studentDnis,commissionKeys:access.commissionKeys});
+    window.PCIPhase2V28?.setAccessScope?.({role:access.role,teacherId:access.teacherId,allowedAreasByOrientation:access.allowedAreasByOrientation,editableAreasByOrientation:access.editableAreasByOrientation});
   }
 
   function apply(){
@@ -206,10 +216,10 @@
   }
 
   document.addEventListener('dragstart',e=>{
-    if(session.role==='teacher'&&e.target.closest?.('#offer')){e.preventDefault();toast('El Mapa de la Oferta está en modo solo lectura.',true)}
+    if(['teacher','coordinator'].includes(session.role)&&e.target.closest?.('#offer')){e.preventDefault();toast('El Mapa de la Oferta está en modo solo lectura.',true)}
   },true);
   document.addEventListener('drop',e=>{
-    if(session.role==='teacher'&&e.target.closest?.('#offer')){e.preventDefault();e.stopPropagation()}
+    if(['teacher','coordinator'].includes(session.role)&&e.target.closest?.('#offer')){e.preventDefault();e.stopPropagation()}
   },true);
 
   function refresh(){clearTimeout(timer);timer=setTimeout(apply,80)}
@@ -226,13 +236,14 @@
     .v80-access-note{margin:12px 0;padding:12px 14px;border:1px solid #b7ccd9;border-radius:14px;background:#f3f8fb;color:#31536d;font-size:.65rem;line-height:1.4}
     #offer.v80-readonly-offer .slot{pointer-events:none}
     body[data-pci-role="teacher"] #home .v74-school-setup{display:none!important}
-    body[data-pci-role="teacher"] #v71LeanHomeEntry{display:none!important}
+    body[data-pci-role="teacher"] #v71LeanHomeEntry,body[data-pci-role="coordinator"] #v71LeanHomeEntry{display:none!important}
+    body[data-pci-role="coordinator"] #home .v74-school-setup{display:none!important}
     body[data-pci-role="student"] #home .v74-school-setup,body[data-pci-role="family"] #home .v74-school-setup{display:none!important}
   `;
   document.head.appendChild(style);
 
   window.PCIAppAccessV80={
-    setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis]}),
+    setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis],coordinatorAreas:[...(session.coordinatorAreas||[])]}),
     derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,canOpen,apply
   };
 })();
