@@ -29,3 +29,16 @@ test('V85 no reemplaza la autenticacion de backend',()=>{
   assert.match(panel,/autenticación real por usuario\/email/);
   assert.doesNotMatch(panel,/password\s*=/i);
 });
+
+
+test('V86 coordinacion se genera desde orientaciones y excluye Otros formatos pedagogicos',()=>{
+  const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
+  const access=fs.readFileSync('src/v80-access-control.js','utf8');
+  assert.match(panel,/function orientations\(\)/);
+  assert.match(panel,/state\.selected/);
+  assert.match(panel,/Coordinadores por orientación/);
+  assert.match(panel,/coordinatorOrientation/);
+  assert.doesNotMatch(panel,/Formación Orientada','Otros formatos pedagógicos/);
+  assert.match(access,/coordinatorOrientation/);
+  assert.match(access,/\{\[coordinatorOrientation\]:\[\.\.\.coordinatorAreas\]\}/);
+});
