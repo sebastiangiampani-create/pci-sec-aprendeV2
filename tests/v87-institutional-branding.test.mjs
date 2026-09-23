@@ -13,7 +13,7 @@ test('V87 incorpora los dos recursos institucionales',()=>{
   assert.match(school,/escuela de/);
   assert.match(school,/maestros/);
   assert.match(ministry,/Ministerio de Educación/);
-  assert.match(ministry,/Buenos[\\s\\S]*Aires Ciudad/);
+  assert.match(ministry,/Buenos/);\n  assert.match(ministry,/Aires Ciudad/);
 });
 
 test('V87 muestra logo y footer tambien dentro del panel de acceso',()=>{
