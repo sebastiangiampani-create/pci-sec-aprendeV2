@@ -3,7 +3,7 @@
   const ROLES=new Set(['admin','coordinator','teacher','student','family']);
   const cleanDni=v=>String(v??'').replace(/\D/g,'');
   const norm=v=>String(v??'').trim().toLowerCase();
-  let session={role:'admin',teacherId:'',studentDnis:[],email:'',coordinatorAreas:[]};
+  let session={role:'admin',teacherId:'',studentDnis:[],email:'',coordinatorOrientation:'',coordinatorAreas:[]};
   let observer=null,timer=null,lastModuleSignature='';
 
   function root(){
@@ -69,23 +69,26 @@
     let teacherId=String(scope.teacherId||'');
     const email=String(scope.email||'').trim();
     if(role==='teacher'&&!teacherId&&email)teacherId=String(teacherByEmail(email)?.id||'');
+    const coordinatorOrientation=String(scope.coordinatorOrientation||'').trim();
     const coordinatorAreas=Array.isArray(scope.coordinatorAreas)?[...new Set(scope.coordinatorAreas.map(v=>String(v||'').trim()).filter(Boolean))]:[];
     let studentDnis=Array.isArray(scope.studentDnis)?scope.studentDnis.map(cleanDni).filter(Boolean):[];
     if(role==='student'&&!studentDnis.length&&scope.studentDni)studentDnis=[cleanDni(scope.studentDni)].filter(Boolean);
     if(role==='student'&&!studentDnis.length&&email)studentDnis=studentDnisByEmail(email);
-    return {role,teacherId,studentDnis:[...new Set(studentDnis)],email,coordinatorAreas};
+    return {role,teacherId,studentDnis:[...new Set(studentDnis)],email,coordinatorOrientation,coordinatorAreas};
   }
 
   function derivedAccess(scope=session){
     const role=scope.role;
     const areas=role==='teacher'?teacherAreasByOrientation(scope.teacherId):{};
     const commissionKeys=role==='teacher'?teacherCommissionKeys(scope.teacherId):[];
+    const coordinatorOrientation=String(scope.coordinatorOrientation||'');
     const coordinatorAreas=[...(scope.coordinatorAreas||[])];
-    const editableAreasByOrientation=role==='coordinator'?Object.fromEntries((state.selected||[]).map(o=>[o,[...coordinatorAreas]])):areas;
+    const editableAreasByOrientation=role==='coordinator'&&coordinatorOrientation?{[coordinatorOrientation]:[...coordinatorAreas]}:areas;
     return {
       role,
       teacherId:scope.teacherId,
       studentDnis:[...(scope.studentDnis||[])],
+      coordinatorOrientation,
       coordinatorAreas,
       allowedAreasByOrientation:areas,
       editableAreasByOrientation,
@@ -162,7 +165,7 @@
   function accessSignature(access){
     const areas=Object.fromEntries(Object.entries(access.allowedAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
     const editable=Object.fromEntries(Object.entries(access.editableAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
-    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas,editable,coordinatorAreas:[...(access.coordinatorAreas||[])].sort()});
+    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas,editable,coordinatorOrientation:access.coordinatorOrientation||'',coordinatorAreas:[...(access.coordinatorAreas||[])].sort()});
   }
 
   function applyModules(access,force=false){
@@ -243,7 +246,7 @@
   document.head.appendChild(style);
 
   window.PCIAppAccessV80={
-    setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis],coordinatorAreas:[...(session.coordinatorAreas||[])]}),
+    setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis],coordinatorOrientation:session.coordinatorOrientation||'',coordinatorAreas:[...(session.coordinatorAreas||[])]}),
     derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,canOpen,apply
   };
 })();
