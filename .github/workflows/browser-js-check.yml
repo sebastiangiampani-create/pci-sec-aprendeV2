@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/v93-curricular-coverage-dashboard
   pull_request:
   workflow_dispatch:
 
