@@ -245,7 +245,7 @@
     try{
       const all=rows(),assigned=all.filter(r=>root().assignments[r.instanceId]).length,sum=summaryStats();
       const title=$('v48InstitutionalTitle');if(title)title.textContent=`${state.school||'Escuela'} · Gestión institucional`;
-      const hero=screen.querySelector('.hero p');if(hero)hero.textContent='Planta docente simple: cargo como bolsa de horas, asignación frente a curso por drag & drop, disponibilidad y horarios.';
+      const hero=screen.querySelector('.hero p');if(hero)hero.textContent='Planta docente: cargos y asignación frente a curso conectados con el Desarrollo Curricular.';
       host.innerHTML=`
         <div class="v71m-summary">
           <span><strong>${sum.teachers}</strong> docentes</span>
@@ -305,13 +305,13 @@
     if(list){
       let card=$('v71LeanHomeEntry');if(!card){card=document.createElement('section');card.id='v71LeanHomeEntry';card.className='card v71n-entry-card';list.after(card)}
       const all=rows(),assigned=all.filter(r=>root().assignments[r.instanceId]).length;
-      card.innerHTML=`<div><div class="eyebrow">Nivel escuela</div><h2>Gestión institucional</h2><p>Docentes, cargos, asignaciones, disponibilidad y horarios.</p><small>${teachers().length} docentes · ${assigned}/${all.length} materias asignadas</small></div><button type="button" class="btn primary" data-v71n-open>Abrir Gestión</button>`;
+      card.innerHTML=`<div><div class="eyebrow">Nivel escuela</div><h2>Gestión institucional</h2><p>Docentes, cargos y asignaciones vinculadas con la estructura curricular.</p><small>${teachers().length} docentes · ${assigned}/${all.length} materias asignadas</small></div><button type="button" class="btn primary" data-v71n-open>Abrir Gestión</button>`;
       card.querySelector('[data-v71n-open]').onclick=openManagement;
     }
     const grid=document.querySelector('#panel .phase-grid');
     if(grid){
       let card=$('v71LeanPanelEntry');if(!card){card=document.createElement('article');card.id='v71LeanPanelEntry';card.className='card phase v71n-panel-entry';grid.appendChild(card)}
-      card.innerHTML='<div class="eyebrow">Gestión</div><h2>Gestión institucional</h2><p>Planta docente, cargos, asignación frente a curso, disponibilidad y horarios.</p><button type="button" class="btn primary" data-v71n-open>Entrar</button>';
+      card.innerHTML='<div class="eyebrow">Gestión</div><h2>Gestión institucional</h2><p>Planta docente, cargos y asignación frente a curso.</p><button type="button" class="btn primary" data-v71n-open>Entrar</button>';
       card.querySelector('[data-v71n-open]').onclick=openManagement;
     }
   }
