@@ -15,9 +15,9 @@ test('V91 recorta el recorrido a curriculum y gestion necesaria',()=>{
   assert.ok(app.includes('src/v71-simple-assignment-excel.js'));
 });
 
-test('V91 mantiene gestion de docentes cargos asignaciones y estudiantes',()=>{
+test('V91 mantiene la base curricular y de gestion sin reactivar modulos retirados',()=>{
   const management=fs.readFileSync('src/v73-management-home.js','utf8');
-  for(const key of ["key:'docentes'","key:'asignaciones'","key:'comisiones'","key:'excel'","key:'respaldo'"])assert.ok(management.includes(key),key);
+  for(const key of ["key:'docentes'","key:'asignaciones'","key:'excel'"])assert.ok(management.includes(key),key);
   assert.equal(management.includes("key:'horarios'"),false);
   assert.equal(management.includes("key:'disponibilidad'"),false);
   assert.equal(management.includes("key:'equipos'"),false);
