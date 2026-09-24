@@ -107,6 +107,7 @@
     overlay.innerHTML=`
       <main class="v85-shell" role="dialog" aria-modal="true" aria-labelledby="v85Title">
         <section class="v85-hero">
+          <div class="access-brand-row"><img class="access-school-logo" src="assets/logo-escuela-maestros.svg" alt="Escuela de Maestros"><img class="access-ba-logo" src="assets/ba-logo.png" alt="BA · Gobierno de la Ciudad de Buenos Aires"></div>
           <p class="v85-eye">PCI Secundaria Aprende</p>
           <h1 id="v85Title">Acceso a la plataforma</h1>
           <p>Elegí el perfil con el que querés ingresar. Esta pantalla prepara la lógica de permisos del nuevo sistema sin modificar la estética curricular existente.</p>
@@ -136,6 +137,7 @@
           <strong>Acceso de prueba.</strong>
           La selección de perfil funciona localmente. La autenticación real por usuario/email y los permisos persistentes se conectarán al backend cuando armemos la base.
         </aside>
+        <footer class="access-institutional-footer" aria-label="Identidad institucional"><img class="access-footer-school" src="assets/logo-escuela-maestros-blanco.svg" alt="Escuela de Maestros"><div class="access-footer-right"><strong>Ministerio de Educación</strong><span class="access-footer-sep"></span><img src="assets/ba-ciudad-footer.png" alt="Buenos Aires Ciudad"></div></footer>
       </main>`;
 
     document.body.appendChild(overlay);
@@ -239,7 +241,9 @@
     .v85-hero{position:relative;padding:38px 38px 34px;background:linear-gradient(135deg,#edf3f8 0%,#f8fbfd 62%,#eef8f6 100%);overflow:hidden}
     .v85-hero:after{content:"";position:absolute;width:310px;height:310px;border-radius:50%;right:-120px;bottom:-175px;background:#dce6ea}
     .v85-hero>*{position:relative;z-index:1}.v85-hero h1{margin:4px 0 10px;font-size:clamp(2rem,4vw,3.5rem);letter-spacing:-.04em}.v85-hero p{max-width:820px;margin:0;color:#5f7382;line-height:1.55}
+    .access-brand-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px}.access-school-logo{display:block;width:min(285px,66vw);height:54px;object-fit:contain;object-position:left center}.access-ba-logo{display:block;height:30px;width:auto}
     .v85-eye{margin:0 0 6px;color:#126e65;font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .access-institutional-footer{margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:30px 28px;background:#0d3550;color:#fff}.access-footer-school{display:block;width:min(205px,48vw);height:auto}.access-footer-right{display:flex;align-items:center;gap:14px}.access-footer-right strong{font-size:.82rem}.access-footer-sep{width:1px;height:28px;background:#ffffff66}.access-footer-right img{display:block;height:42px;width:auto}
     .v85-card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:22px 22px 0}
     .v85-role-card{display:grid;gap:8px;min-height:168px;padding:20px;border:1px solid #d8e1e8;border-radius:20px;background:#fff;text-align:left;color:#12395c;box-shadow:0 10px 26px rgba(18,57,92,.05)}
     .v85-role-card:hover,.v85-role-card.selected{border-color:#126e65;box-shadow:0 14px 34px rgba(18,110,101,.12)}.v85-role-card.selected{background:#f4fbf9}
@@ -253,7 +257,7 @@
     .v85-empty-note{grid-column:1/-1;padding:10px 12px;border-radius:12px;background:#fff5dc;color:#805700!important;font-size:.75rem}
     .v85-warning{margin:18px 22px 22px;padding:14px 16px;border:1px solid #f0daa2;border-radius:16px;background:#fffaf0;color:#805700;font-size:.74rem;line-height:1.45}
     .v85-profile-chip{position:fixed;right:14px;top:14px;z-index:9998;max-width:min(560px,calc(100vw - 28px));padding:8px 12px;border:1px solid rgba(18,57,92,.14);border-radius:999px;background:rgba(255,255,255,.94);color:#12395c;box-shadow:0 8px 22px rgba(18,57,92,.12);font-size:.66rem;font-weight:850}
-    @media(max-width:760px){.v85-overlay{padding:0}.v85-shell{border-radius:0;min-height:100vh}.v85-hero{padding:28px 20px}.v85-card-grid{grid-template-columns:1fr;padding:16px 16px 0}.v85-role-card{min-height:auto}.v85-detail{grid-template-columns:1fr;margin:16px 16px 0}.v85-orientation-grid,.v85-area-grid{grid-template-columns:1fr}.v85-select-wrap select{min-width:0;width:100%}.v85-warning{margin:16px}.v85-profile-chip{top:auto;bottom:12px}}
+    @media(max-width:760px){.v85-overlay{padding:0}.v85-shell{border-radius:0;min-height:100vh}.v85-hero{padding:28px 20px}.access-brand-row{align-items:flex-start}.access-school-logo{width:min(235px,64vw);height:48px}.access-ba-logo{height:26px}.v85-card-grid{grid-template-columns:1fr;padding:16px 16px 0}.v85-role-card{min-height:auto}.v85-detail{grid-template-columns:1fr;margin:16px 16px 0}.v85-orientation-grid,.v85-area-grid{grid-template-columns:1fr}.v85-select-wrap select{min-width:0;width:100%}.v85-warning{margin:16px}.access-institutional-footer{padding:26px 20px;gap:14px}.access-footer-right{gap:10px;flex-wrap:wrap}.access-footer-right img{height:38px}.v85-profile-chip{top:auto;bottom:12px}}
   `;
   document.head.appendChild(style);
 

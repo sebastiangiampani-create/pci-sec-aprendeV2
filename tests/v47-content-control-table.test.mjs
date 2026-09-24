@@ -34,18 +34,23 @@ test('r47 no modifica ni parchea el motor V47 de Desarrollo Curricular',async()=
   assert.doesNotMatch(v47,/PCIContentControlV84|v84ContentControl|data-v84-control/);
 });
 
-test('el loader productivo incorpora solamente el nuevo módulo de control',async()=>{
-  const loader=await readFile(new URL('../app-safe.html',import.meta.url),'utf8');
+test('el cargador principal incorpora el módulo de control',async()=>{
+  const loader=await readFile(new URL('../app.html',import.meta.url),'utf8');
   assert.match(loader,/src\/v84-content-control-table\.js/);
 });
 
-test('la publicación usa una versión de caché propia y sincronizada',async()=>{
-  const [loader,index]=await Promise.all([
+test('la publicación no usa versiones manuales de caché',async()=>{
+  const [loader,index,app,core]=await Promise.all([
     readFile(new URL('../app-safe.html',import.meta.url),'utf8'),
-    readFile(new URL('../index.html',import.meta.url),'utf8')
+    readFile(new URL('../index.html',import.meta.url),'utf8'),
+    readFile(new URL('../app.html',import.meta.url),'utf8'),
+    readFile(new URL('../app-core.html',import.meta.url),'utf8')
   ]);
-  const loaderVersion=loader.match(/app\.html\?v=([^'"]+)/)?.[1]||'';
-  const indexVersion=index.match(/app-safe\.html\?v=([^'"]+)/)?.[1]||'';
-  assert.equal(loaderVersion,'20260924-v89-single-footer');
-  assert.equal(indexVersion,loaderVersion);
+  for(const source of [loader,index,app,core]){
+    assert.doesNotMatch(source,/\?v=20\d{6}/);
+  }
+  assert.match(loader,/fetch\('app\.html',\{cache:'no-store'\}\)/);
+  assert.match(index,/fetch\('app\.html',\{cache:'no-store'\}\)/);
+  assert.match(app,/fetch\(url,\{cache:'no-store'\}\)/);
+  assert.match(core,/materias-v2\.json',\{cache:'no-store'\}/);
 });

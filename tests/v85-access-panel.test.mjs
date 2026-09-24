@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 test('V85 panel de acceso queda cargado y conserva los tres perfiles nuevos',()=>{
-  const safe=fs.readFileSync('app-safe.html','utf8');
+  const app=fs.readFileSync('app.html','utf8');
   const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
-  assert.match(safe,/src\/v80-access-control\.js','src\/v85-access-panel\.js'/);
+  assert.match(app,/src\/v80-access-control\.js/);
+  assert.match(app,/src\/v85-access-panel\.js/);
   assert.match(panel,/Equipo de conducción/);
   assert.match(panel,/Coordinador/);
   assert.match(panel,/Docente/);

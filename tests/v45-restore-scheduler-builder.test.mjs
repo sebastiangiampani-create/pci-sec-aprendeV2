@@ -49,13 +49,16 @@ test('r45 no reintroduce la interfaz visual de ofrecimiento docente',async()=>{
 });
 
 
-test('r45 publica una versión de caché propia y sincronizada',async()=>{
-  const [loader,index]=await Promise.all([
+test('el constructor usa el cargador simple sin versiones manuales',async()=>{
+  const [loader,index,app]=await Promise.all([
     readFile(new URL('../app-safe.html',import.meta.url),'utf8'),
-    readFile(new URL('../index.html',import.meta.url),'utf8')
+    readFile(new URL('../index.html',import.meta.url),'utf8'),
+    readFile(new URL('../app.html',import.meta.url),'utf8')
   ]);
-  const loaderVersion=loader.match(/app\.html\?v=([^'"]+)/)?.[1]||'';
-  const indexVersion=index.match(/app-safe\.html\?v=([^'"]+)/)?.[1]||'';
-  assert.ok(loaderVersion,'app-safe debe declarar una versión de caché');
-  assert.equal(indexVersion,loaderVersion);
+  assert.match(loader,/fetch\('app\.html',\{cache:'no-store'\}\)/);
+  assert.match(index,/fetch\('app\.html',\{cache:'no-store'\}\)/);
+  assert.match(app,/fetch\(url,\{cache:'no-store'\}\)/);
+  assert.doesNotMatch(loader,/\?v=/);
+  assert.doesNotMatch(index,/\?v=/);
+  assert.doesNotMatch(app,/\?v=/);
 });
