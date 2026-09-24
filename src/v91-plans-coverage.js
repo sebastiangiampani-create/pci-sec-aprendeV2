@@ -87,7 +87,7 @@
       if(/^Planes \/ proyectos/i.test(title))label.style.display='none';
     });
 
-    const editable=!!phase()?.canEditArea?.(group.area);
+    const editable=!!phase()?.canEditGroup?.(group);
     const plans=allPlans(group);
     const nums=visiblePlanNumbers(group);
     const format=coverage()?.formatCoverage?.(group)||{total:0,used:0,percent:0,year:group.year,bySubject:[],offLevel:0};
