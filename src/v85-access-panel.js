@@ -16,12 +16,27 @@
     return state.institutional;
   }
 
+  const cargoHours={TC:36,TP1:30,TP2:24,TP3:18,TP4:12};
+  function cargoSummary(t={}){
+    const cargos=Array.isArray(t.cargos)&&t.cargos.length?t.cargos:[{type:t.cargoType||'',manualHours:t.manualHours||0}];
+    const labels=cargos.map(c=>{
+      const type=String(c.type||'').trim();
+      if(!type)return'';
+      if(type==='POR_HORAS')return `${Number(c.manualHours)||0} HC`;
+      return cargoHours[type]?`${type} · ${cargoHours[type]} HC`:type;
+    }).filter(Boolean);
+    return labels.join(' + ')||'Sin cargo informado';
+  }
   function teachers(){
     const root=institutional();
     return Object.values(root.teachers||{}).map(t=>({
       id:String(t.id||''),
       name:String(t.name||t.fullName||t.nombre||t.email||t.id||'Docente'),
-      email:String(t.email||root.teacherProfiles?.[t.id]?.email||'')
+      email:String(t.email||root.teacherProfiles?.[t.id]?.email||''),
+      cargos:Array.isArray(t.cargos)?t.cargos:[],
+      cargoType:t.cargoType||'',
+      manualHours:t.manualHours||0,
+      cargoLabel:cargoSummary(t)
     })).filter(t=>t.id).sort((a,b)=>a.name.localeCompare(b.name,'es'));
   }
 
@@ -63,16 +78,37 @@
 
   function renderChip(profile){
     profileChip?.remove();
-    profileChip=document.createElement('button');
-    profileChip.type='button';
-    profileChip.className='v85-profile-chip';
-    const extra=profile.role==='coordinator'&&profile.coordinatorOrientation
-      ? ' · '+profile.coordinatorOrientation+(profile.coordinatorAreas?.length?' · '+profile.coordinatorAreas.join(', '):'')
-      : profile.role==='teacher'&&profile.name
-        ? ' · '+profile.name
-        : '';
-    profileChip.textContent=labelOf(profile)+extra+' · Cambiar';
-    profileChip.onclick=()=>{clearProfile();showPanel()};
+    const root=institutional();
+    const teacher=profile.role==='teacher'?teachers().find(t=>t.id===String(profile.teacherId||'')):null;
+    const displayName=teacher?.name||labelOf(profile);
+    const initials=displayName.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toUpperCase()).join('')||'U';
+    const assigned=profile.role==='teacher'?Object.values(root.assignments||{}).filter(v=>String(v)===String(profile.teacherId||'')).length:0;
+    const meta=profile.role==='teacher'
+      ? `${teacher?.cargoLabel||'Sin cargo informado'} · ${assigned} asignación${assigned===1?'':'es'}`
+      : profile.role==='coordinator'
+        ? `${profile.coordinatorOrientation||'Orientación'} · ${(profile.coordinatorAreas||[]).join(', ')||'Sin áreas'}`
+        : 'Acceso institucional completo';
+
+    profileChip=document.createElement('div');
+    profileChip.className='v91-profile';
+    profileChip.innerHTML=`
+      <button type="button" class="v91-profile-main" aria-expanded="false">
+        <span class="v91-avatar">${esc(initials)}</span>
+        <span class="v91-profile-copy"><small>${esc(labelOf(profile))}</small><strong>${esc(displayName)}</strong><em>${esc(meta)}</em></span>
+        <span class="v91-profile-chevron">⌄</span>
+      </button>
+      <div class="v91-profile-menu" hidden>
+        <div><small>Perfil actual</small><strong>${esc(labelOf(profile))}</strong><span>${esc(meta)}</span></div>
+        <button type="button" data-v91-change>Salir / cambiar perfil</button>
+      </div>`;
+    const main=profileChip.querySelector('.v91-profile-main');
+    const menu=profileChip.querySelector('.v91-profile-menu');
+    main.onclick=()=>{
+      const open=menu.hidden;
+      menu.hidden=!open;
+      main.setAttribute('aria-expanded',String(open));
+    };
+    profileChip.querySelector('[data-v91-change]').onclick=()=>{clearProfile();showPanel()};
     document.body.appendChild(profileChip);
   }
 
@@ -93,7 +129,7 @@
   function teacherOptions(){
     const rows=teachers();
     if(!rows.length)return '<option value="">Todavía no hay docentes cargados</option>';
-    return '<option value="">Seleccionar docente</option>'+rows.map(t=>`<option value="${esc(t.id)}" data-email="${esc(t.email)}">${esc(t.name)}${t.email?' · '+esc(t.email):''}</option>`).join('');
+    return '<option value="">Seleccionar docente</option>'+rows.map(t=>`<option value="${esc(t.id)}" data-email="${esc(t.email)}">${esc(t.name)} · ${esc(t.cargoLabel)}${t.email?' · '+esc(t.email):''}</option>`).join('');
   }
 
   function showPanel(){
@@ -257,8 +293,8 @@
     .v85-enter{min-height:42px;padding:10px 18px;border:0;border-radius:999px;background:#12395c;color:#fff;font-weight:900}.v85-enter:disabled{opacity:.4}
     .v85-empty-note{grid-column:1/-1;padding:10px 12px;border-radius:12px;background:#fff5dc;color:#805700!important;font-size:.75rem}
     .v85-warning{margin:18px 22px 22px;padding:14px 16px;border:1px solid #f0daa2;border-radius:16px;background:#fffaf0;color:#805700;font-size:.74rem;line-height:1.45}
-    .v85-profile-chip{position:fixed;right:14px;top:14px;z-index:9998;max-width:min(560px,calc(100vw - 28px));padding:8px 12px;border:1px solid rgba(18,57,92,.14);border-radius:999px;background:rgba(255,255,255,.94);color:#12395c;box-shadow:0 8px 22px rgba(18,57,92,.12);font-size:.66rem;font-weight:850}
-    @media(max-width:760px){.v85-overlay{padding:0}.v85-shell{border-radius:0;min-height:100vh}.v85-hero{padding:28px 20px}.access-brand-row{align-items:flex-start}.access-school-logo{width:min(235px,64vw);height:48px}.access-ba-logo{height:26px}.v85-card-grid{grid-template-columns:1fr;padding:16px 16px 0}.v85-role-card{min-height:auto}.v85-detail{grid-template-columns:1fr;margin:16px 16px 0}.v85-orientation-grid,.v85-area-grid{grid-template-columns:1fr}.v85-select-wrap select{min-width:0;width:100%}.v85-warning{margin:16px}.access-institutional-footer{padding:30px 20px;gap:14px}.access-footer-school{width:min(130px,42vw)}.access-footer-right{gap:10px;flex-wrap:wrap}.access-footer-right strong{font-size:.88rem}.access-footer-sep{height:32px}.access-footer-right img{height:40px}.access-cc-footer{justify-content:flex-start;padding:12px 20px}.v85-profile-chip{top:auto;bottom:12px}}
+    .v91-profile{position:fixed;right:14px;top:14px;z-index:9998;width:min(390px,calc(100vw - 28px));font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.v91-profile-main{width:100%;display:grid;grid-template-columns:42px minmax(0,1fr) 20px;gap:9px;align-items:center;padding:8px 10px;border:1px solid rgba(18,57,92,.14);border-radius:18px;background:rgba(255,255,255,.97);color:#12395c;box-shadow:0 8px 22px rgba(18,57,92,.12);text-align:left}.v91-avatar{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#12395c;color:#fff;font-size:.72rem;font-weight:900}.v91-profile-copy{min-width:0;display:block}.v91-profile-copy small,.v91-profile-copy strong,.v91-profile-copy em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v91-profile-copy small{color:#126e65;font-size:.52rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.v91-profile-copy strong{margin-top:1px;font-size:.72rem}.v91-profile-copy em{margin-top:2px;color:#5f7382;font-size:.55rem;font-style:normal}.v91-profile-chevron{font-size:1rem}.v91-profile-menu{margin-top:6px;padding:12px;border:1px solid #d8e1e8;border-radius:16px;background:#fff;box-shadow:0 14px 32px rgba(18,57,92,.16)}.v91-profile-menu small,.v91-profile-menu strong,.v91-profile-menu span{display:block}.v91-profile-menu small{color:#5f7382;font-size:.52rem}.v91-profile-menu strong{margin-top:2px;font-size:.72rem}.v91-profile-menu span{margin-top:3px;color:#5f7382;font-size:.58rem}.v91-profile-menu button{width:100%;margin-top:10px;padding:8px 10px;border:1px solid #d8e1e8;border-radius:999px;background:#edf3f8;color:#12395c;font-weight:850}
+    @media(max-width:760px){.v85-overlay{padding:0}.v85-shell{border-radius:0;min-height:100vh}.v85-hero{padding:28px 20px}.access-brand-row{align-items:flex-start}.access-school-logo{width:min(235px,64vw);height:48px}.access-ba-logo{height:26px}.v85-card-grid{grid-template-columns:1fr;padding:16px 16px 0}.v85-role-card{min-height:auto}.v85-detail{grid-template-columns:1fr;margin:16px 16px 0}.v85-orientation-grid,.v85-area-grid{grid-template-columns:1fr}.v85-select-wrap select{min-width:0;width:100%}.v85-warning{margin:16px}.access-institutional-footer{padding:30px 20px;gap:14px}.access-footer-school{width:min(130px,42vw)}.access-footer-right{gap:10px;flex-wrap:wrap}.access-footer-right strong{font-size:.88rem}.access-footer-sep{height:32px}.access-footer-right img{height:40px}.access-cc-footer{justify-content:flex-start;padding:12px 20px}.v91-profile{top:auto;bottom:12px}}
   `;
   document.head.appendChild(style);
 
