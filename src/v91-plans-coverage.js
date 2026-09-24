@@ -2,7 +2,7 @@
   const phase=()=>window.PCIPhase2V28;
   const coverage=()=>window.PCICoverageV91;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const pct=result=>Number.isFinite(Number(result?.percent))?Number(result.percent):null;
+  const pct=result=>result?.percent===null||result?.percent===undefined?null:(Number.isFinite(Number(result.percent))?Number(result.percent):null);
 
   function allPlans(group){
     group.data.v91Plans=Array.isArray(group.data.v91Plans)?group.data.v91Plans:[];
