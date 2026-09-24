@@ -14,17 +14,10 @@ test('V65 monta el constructor sin depender de la UI de ofrecimiento',async()=>{
   assert.doesNotMatch(renderBody,/v56OfferModel|v65AnnualOffer/);
 });
 
-test('Gestión vuelve a montar V65 V81 y Vistas después de activar Horarios',async()=>{
+test('V91 no monta el constructor de Horarios desde Gestión',async()=>{
   const source=await readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8');
-  const openStart=source.indexOf('function openModule(key)');
-  const applyStart=source.indexOf('function applyView()',openStart);
-  assert.ok(openStart>=0&&applyStart>openStart);
-  const body=source.slice(openStart,applyStart);
-  assert.match(body,/applyView\(\);\s*if\(key==='horarios'\)\{/);
-  assert.match(body,/PCIAnnualSchedulerV65\?\.render\?\.\(\)/);
-  assert.match(body,/PCIScheduleStableV81\?\.decorate\?\.\(\)/);
-  assert.match(body,/PCIScheduleViews\?\.render\?\.\(\)/);
-  assert.match(body,/PCIScheduleViews\?\.render\?\.\(\);\s*applyView\(\);/);
+  assert.doesNotMatch(source,/key:'horarios'/);
+  assert.doesNotMatch(source,/PCIAnnualSchedulerV65|PCIScheduleStableV81|PCIScheduleViews/);
 });
 
 test('Vistas del horario se anclan primero al constructor V65 y respetan su visibilidad',async()=>{

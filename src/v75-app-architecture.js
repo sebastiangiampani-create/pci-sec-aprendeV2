@@ -18,12 +18,7 @@
       management.classList.add('v75-management');
       let eyebrow=management.querySelector('.eyebrow');if(eyebrow)eyebrow.textContent='2 · Gestión Institucional';
     }
-    let grading=$('v75Grading');
-    if(!grading){
-      grading=document.createElement('article');grading.id='v75Grading';grading.className='card v75-grading';
-      grading.innerHTML='<div><div class="eyebrow">3 · Calificaciones</div><h2>Calificaciones</h2><p>Conecta los planes del Desarrollo Curricular con agrupamientos, docentes, comisiones y estudiantes de Gestión.</p><small>Se habilitará cuando construyamos el módulo de calificaciones.</small></div><button class="btn soft" type="button" disabled>Próximamente</button>';
-      (management||pci).after(grading);
-    }
+    $('v75Grading')?.remove();
   }
   function cleanPanel(){
     const panel=$('panel');if(!panel)return;
@@ -68,8 +63,7 @@
     .v75-area-head{display:flex;justify-content:space-between;align-items:center;gap:18px}.v75-area h2{margin:4px 0}.v75-area p{margin:0;color:var(--muted);font-size:.7rem}
     .v75-flow{padding:8px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.58rem;font-weight:900;white-space:nowrap}
     .v75-pci-print-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:#fff}.v75-pci-print-entry strong{display:block;font-size:.78rem}.v75-pci-print-entry span{display:block;margin-top:3px;color:var(--muted);font-size:.58rem}.v75-print-slot{flex:0 0 auto}.v75-print-pci-button{margin:0!important}
-    .v75-management{margin-top:28px!important}.v75-grading{margin-top:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:18px;border-radius:22px;background:#f7f8fa}
-    .v75-grading h2{margin:4px 0}.v75-grading p{margin:0;color:var(--muted);font-size:.7rem}.v75-grading small{display:block;margin-top:7px;color:var(--muted);font-size:.56rem}
-    @media(max-width:760px){.v75-area-head,.v75-grading,.v75-pci-print-entry{align-items:flex-start;flex-direction:column}.v75-pci-print-entry .btn{width:100%}.v75-flow{white-space:normal}.v75-grading .btn{width:100%}}
+    .v75-management{margin-top:28px!important}
+    @media(max-width:760px){.v75-area-head,.v75-pci-print-entry{align-items:flex-start;flex-direction:column}.v75-pci-print-entry .btn{width:100%}.v75-flow{white-space:normal}}
   `;document.head.appendChild(style);
 })();

@@ -98,16 +98,12 @@ test('reporte anual conserva todos los estudiantes de la comisión',async()=>{
   assert.equal(report.rows.find(r=>r.dni==='22222222').records,2);
 });
 
-test('r39 agrega la tercera pestaña y se carga después de regularidad',async()=>{
+test('V91 conserva el reporte de asistencia como legado pero no lo carga',async()=>{
   const [moduleSource,loader]=await Promise.all([
     readFile(new URL('../src/v83-attendance-course-report.js',import.meta.url),'utf8'),
     readFile(new URL('../app.html',import.meta.url),'utf8')
   ]);
   assert.match(moduleSource,/Reporte por curso/);
-  assert.match(moduleSource,/Ciclo lectivo completo/);
-  assert.match(moduleSource,/No Regulares/);
-  const regularity=loader.indexOf("'src/v79-regularidad.js'");
-  const report=loader.indexOf("'src/v83-attendance-course-report.js'");
-  assert.ok(regularity>=0);
-  assert.ok(report>regularity);
+  assert.doesNotMatch(loader,/'src\/v79-regularidad\.js'/);
+  assert.doesNotMatch(loader,/'src\/v83-attendance-course-report\.js'/);
 });

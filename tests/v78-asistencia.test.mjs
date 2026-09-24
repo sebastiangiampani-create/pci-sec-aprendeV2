@@ -96,16 +96,15 @@ test('la pantalla independiente solo se muestra cuando está activa',async()=>{
   assert.match(source,/#v78Attendance\.screen\.active\{display:grid/);
 });
 
-test('Asistencia se carga en Inicio y ya no forma parte de Gestión',async()=>{
+test('V91 conserva Asistencia como código legado pero no la carga en el producto',async()=>{
   const [attendance,management,loader]=await Promise.all([
     readFile(new URL('../src/v78-asistencia.js',import.meta.url),'utf8'),
     readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8'),
     readFile(new URL('../app.html',import.meta.url),'utf8')
   ]);
   assert.match(attendance,/document\.querySelector\('main\.wrap'\)/);
-  assert.doesNotMatch(attendance,/v48InstitutionalContent/);
   assert.doesNotMatch(management,/key:'asistencia'/);
-  assert.match(loader,/'src\/v78-asistencia\.js'/);
+  assert.doesNotMatch(loader,/'src\/v78-asistencia\.js'/);
 });
 
 
