@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/v92-teacher-plans-scope
   pull_request:
   workflow_dispatch:
 
@@ -38,7 +37,7 @@ jobs:
             exit 1
           fi
 
-          for needle in             "src/v47-phase2-matrix.js"             "src/v59-phase2-annual-matrix.js"             "src/v48-institutional-layer.js"             "src/v71-lean-management.js"             "src/v71-simple-assignment-excel.js"             "src/v72-students-commissions.js"             "src/v73-management-home.js"             "src/v80-access-control.js"             "src/v85-access-panel.js"             "src/v91-coverage-core.js"             "src/v91-plans-coverage.js"             "src/v92-teacher-plans.js"; do
+          for needle in             "src/v47-phase2-matrix.js"             "src/v59-phase2-annual-matrix.js"             "src/v48-institutional-layer.js"             "src/v71-lean-management.js"             "src/v71-simple-assignment-excel.js"             "src/v72-students-commissions.js"             "src/v73-management-home.js"             "src/v80-access-control.js"             "src/v85-access-panel.js"             "src/v91-coverage-core.js"             "src/v91-plans-coverage.js"; do
             grep -Fq "$needle" app.html
           done
 
@@ -63,8 +62,7 @@ jobs:
             'src/v80-access-control.js':['teacherEditSubjectsByOrientation','editableSubjectsByOrientation','coordinatorOrientation'],
             'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Coordinadores por orientación'],
             'src/v91-coverage-core.js':['universeForGroup','coverageForIds','offLevel','formatCoverage'],
-            'src/v91-plans-coverage.js':['Dimensión 1 · Formato curricular','Dimensión 2 · Planes','Criterios colegiados de evaluación','[1,2,3,4].map'],
-            'src/v92-teacher-plans.js':['allImplementationRows','map.placements','PCICoverageV91','PCIPlansCoverageV91','plans:plans.map','Cobertura del formato']
+            'src/v91-plans-coverage.js':['Dimensión 1 · Formato curricular','Dimensión 2 · Planes','Criterios colegiados de evaluación','[1,2,3,4].map']
           };
           for(const [file,needles] of Object.entries(checks)){
             const text=fs.readFileSync(file,'utf8');

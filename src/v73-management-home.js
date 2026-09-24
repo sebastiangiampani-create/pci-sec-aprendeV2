@@ -5,10 +5,8 @@
   const defs=[
     {key:'docentes',title:'Docentes y cargos',desc:'Planta docente, cargos y datos de identificación.',icon:'👥',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71m-teacher-section')]},
-    {key:'asignaciones',title:'Asignación a espacios',desc:'Vinculación de cada docente con sus espacios curriculares, nivel y curso.',icon:'↔',
+    {key:'asignaciones',title:'Asignación a espacios',desc:'Cruce entre docente, materia, nivel y espacio curricular definido en el Mapa de la Oferta.',icon:'↔',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71o-assignment')]},
-    {key:'planes',title:'Planes por docente',desc:'Espacios y planes que corresponden a cada docente, con sus porcentajes de cobertura.',icon:'▦',
-      find:()=>[$('v92TeacherPlans')].filter(Boolean)},
     {key:'excel',title:'Carga masiva',desc:'Importación de planta, cargos y asignaciones mediante Excel.',icon:'⇩',
       find:()=>[$('v71SimpleAssignmentExcel')].filter(Boolean)}
   ];
@@ -33,7 +31,6 @@
   function statusFor(key,m){
     if(key==='docentes')return `${m.teachers.length} docentes cargados`;
     if(key==='asignaciones')return `${m.assigned}/${m.total} espacios asignados`;
-    if(key==='planes')return `${m.teachersAssigned} docentes con asignación`;
     if(key==='excel')return 'Planta, cargos y asignaciones';
     return '';
   }
@@ -57,13 +54,12 @@
         <div>
           <div class="eyebrow">Gestión institucional</div>
           <h2>Organización docente y académica</h2>
-          <p>Administrá docentes, cargos y asignaciones a espacios curriculares. Desde esas asignaciones se determinan los planes que le corresponden a cada docente y sus porcentajes de cobertura.</p>
+          <p>Administrá docentes, cargos y asignaciones a espacios curriculares. El cruce entre el Mapa de la Oferta y la asignación docente determina automáticamente qué áreas puede consultar cada docente y qué nivel, espacios y planes puede editar en Desarrollo Curricular.</p>
         </div>
         <div class="v73-kpis">
           <span><strong>${m.teachers.length}</strong> docentes</span>
           <span><strong>${m.assigned}/${m.total}</strong> espacios asignados</span>
           <span><strong>${m.teachersAssigned}</strong> docentes con espacios</span>
-          <span><strong>4</strong> planes por nivel</span>
         </div>
       </div>
       ${alerts.length?`<div class="v73-alert"><strong>Para revisar:</strong> ${alerts.join(' · ')}</div>`:'<div class="v73-ok">Gestión sin alertas críticas en este momento.</div>'}
@@ -100,7 +96,6 @@
 
   function prepareModule(key){
     try{
-      if(key==='planes')window.PCITeacherPlansV92?.render?.();
       if(key==='excel')window.PCISimpleAssignmentExcelV71?.render?.();
     }catch(e){console.warn('V73 prepare module',key,e)}
   }
@@ -168,7 +163,7 @@
     .v73-hero:after{content:"";position:absolute;width:210px;height:210px;border-radius:50%;right:-70px;bottom:-105px;background:#dfe7ec}
     .v73-hero>div{position:relative;z-index:1}.v73-hero h2{font-size:clamp(1.5rem,3vw,2.4rem);margin:5px 0 8px;letter-spacing:-.03em}.v73-hero p{margin:0;color:var(--muted);line-height:1.5;max-width:760px}
     .v73-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}.v73-kpis span{padding:12px;border:1px solid rgba(18,57,92,.08);border-radius:14px;background:rgba(255,255,255,.78);font-size:.68rem;color:var(--muted)}.v73-kpis strong{display:block;font-size:1.2rem;color:var(--ink);margin-bottom:2px}
-    .v73-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .v73-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
     .v73-card{display:flex;flex-direction:column;min-height:210px;padding:18px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 10px 26px rgba(18,57,92,.06);transition:.18s ease}.v73-card:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(18,57,92,.1)}
     .v73-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.v73-card-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:var(--band);font-size:1.3rem}.v73-status{max-width:68%;padding:5px 7px;border-radius:999px;background:var(--mint-soft);color:var(--mint-dark);font-size:.51rem;font-weight:850;text-align:right}
     .v73-card h3{margin:15px 0 6px;font-size:1rem}.v73-card p{margin:0 0 16px;color:var(--muted);font-size:.67rem;line-height:1.45}.v73-card button{margin-top:auto;width:max-content;min-width:100px;padding:9px 16px;border:0;border-radius:999px;background:var(--ink);color:#fff;font-weight:850}

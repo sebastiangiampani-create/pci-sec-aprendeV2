@@ -88,7 +88,7 @@
     if(management){
       management.classList.add('v74-management-entry');
       const h2=management.querySelector('h2');if(h2)h2.textContent='Gestión institucional de la escuela';
-      const p=management.querySelector('p');if(p)p.textContent='Docentes, cargos, asignaciones y planes por docente en una gestión conectada con el Desarrollo Curricular.';
+      const p=management.querySelector('p');if(p)p.textContent='Docentes, cargos y asignaciones conectados con el Mapa de la Oferta y el Desarrollo Curricular.';
       const btn=management.querySelector('[data-v71n-open]');if(btn)btn.textContent='Abrir Gestión';
     }
   }
