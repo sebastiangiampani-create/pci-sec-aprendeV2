@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - fix/v92-derived-plans-access
   pull_request:
   workflow_dispatch:
 
