@@ -64,6 +64,22 @@
     return out;
   }
 
+  function teacherEditSubjectsByOrientation(teacherId){
+    const tid=String(teacherId||''),out={};if(!tid)return out;
+    const assignments=root().assignments||{};
+    for(const row of implementationRows()){
+      if(String(assignments[row.instanceId]||'')!==tid)continue;
+      const orientation=String(row.orientation||'');
+      if(!orientation)continue;
+      out[orientation]=out[orientation]||[];
+      const key=`${row.subjectId}|${Number(row.year)||0}`;
+      if(!out[orientation].some(x=>`${x.subjectId}|${x.year}`===key)){
+        out[orientation].push({subjectId:String(row.subjectId||''),year:Number(row.year)||0});
+      }
+    }
+    return out;
+  }
+
   function normalizeSession(scope={}){
     const role=ROLES.has(scope.role)?scope.role:'admin';
     let teacherId=String(scope.teacherId||'');
@@ -80,6 +96,7 @@
   function derivedAccess(scope=session){
     const role=scope.role;
     const areas=role==='teacher'?teacherAreasByOrientation(scope.teacherId):{};
+    const editableSubjectsByOrientation=role==='teacher'?teacherEditSubjectsByOrientation(scope.teacherId):{};
     const commissionKeys=role==='teacher'?teacherCommissionKeys(scope.teacherId):[];
     const coordinatorOrientation=String(scope.coordinatorOrientation||'');
     const coordinatorAreas=[...(scope.coordinatorAreas||[])];
@@ -92,6 +109,7 @@
       coordinatorAreas,
       allowedAreasByOrientation:areas,
       editableAreasByOrientation,
+      editableSubjectsByOrientation,
       commissionKeys,
       orientations:['admin','coordinator'].includes(role)?[...(state.selected||[])]:role==='teacher'?Object.keys(areas):[]
     };
@@ -165,7 +183,8 @@
   function accessSignature(access){
     const areas=Object.fromEntries(Object.entries(access.allowedAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
     const editable=Object.fromEntries(Object.entries(access.editableAreasByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].sort()]));
-    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas,editable,coordinatorOrientation:access.coordinatorOrientation||'',coordinatorAreas:[...(access.coordinatorAreas||[])].sort()});
+    const editSubjects=Object.fromEntries(Object.entries(access.editableSubjectsByOrientation||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,[...v].map(x=>({subjectId:x.subjectId,year:x.year})).sort((a,b)=>a.year-b.year||a.subjectId.localeCompare(b.subjectId))]));
+    return JSON.stringify({role:access.role,teacherId:access.teacherId,studentDnis:[...(access.studentDnis||[])].sort(),commissionKeys:[...(access.commissionKeys||[])].sort(),areas,editable,editSubjects,coordinatorOrientation:access.coordinatorOrientation||'',coordinatorAreas:[...(access.coordinatorAreas||[])].sort()});
   }
 
   function applyModules(access,force=false){
@@ -176,7 +195,7 @@
     window.PCIGradingV76?.setAccessScope?.({role:legacyRole,teacherId:access.teacherId});
     window.PCIAttendanceV78?.setAccessScope?.({role:legacyRole,commissionKeys:access.commissionKeys});
     window.PCIBulletinsV77?.setAccessScope?.({role:legacyRole,teacherId:access.teacherId,studentDnis:access.studentDnis,commissionKeys:access.commissionKeys});
-    window.PCIPhase2V28?.setAccessScope?.({role:access.role,teacherId:access.teacherId,allowedAreasByOrientation:access.allowedAreasByOrientation,editableAreasByOrientation:access.editableAreasByOrientation});
+    window.PCIPhase2V28?.setAccessScope?.({role:access.role,teacherId:access.teacherId,allowedAreasByOrientation:access.allowedAreasByOrientation,editableAreasByOrientation:access.editableAreasByOrientation,editableSubjectsByOrientation:access.editableSubjectsByOrientation});
   }
 
   function apply(){
