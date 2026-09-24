@@ -4,7 +4,7 @@
   const phase=()=>window.PCIPhase2V28;
   const coverage=()=>window.PCICoverageV91;
   const typeLabel=t=>({troncal:'Troncal',laboratorio:'Laboratorios',taller:'Talleres',proyecto:'Proyecto',seminario:'Seminarios',asignatura:'Asignaturas'})[t]||'Formato';
-  const pct=r=>Number.isFinite(Number(r?.percent))?Number(r.percent):null;
+  const pct=r=>r?.percent===null||r?.percent===undefined?null:(Number.isFinite(Number(r.percent))?Number(r.percent):null);
 
   function visibleGroups(){
     const p=phase();if(!p?.groups)return[];
