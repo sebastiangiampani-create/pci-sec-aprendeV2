@@ -32,24 +32,28 @@ test('V91 base de cobertura tiene año prescripto explicito',()=>{
   assert.deepEqual([...new Set(data.rows.map(x=>x.year))].sort(),[1,2,3,4,5]);
 });
 
-test('V91 cobertura usa denominador del año y materias del espacio',()=>{
+test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
   const source=fs.readFileSync('src/v91-coverage-core.js','utf8');
-  assert.ok(source.includes("x.year===year&&keys.has(x._subject)"));
-  assert.ok(source.includes("used.size/universe.length"));
+  assert.ok(source.includes("universeForLevel"));
+  assert.ok(source.includes("x.year===Number(year)&&x._area===ak"));
+  assert.ok(source.includes("groupingLevelCoverage"));
+  assert.ok(source.includes("formatTypeCoverage"));
+  assert.ok(source.includes("trajectoryCoverage"));
   assert.ok(source.includes("offLevel"));
-  assert.ok(source.includes("memberSubjects"));
 });
 
-test('V91 define cuatro planes y dos dimensiones independientes',()=>{
+test('V93 mantiene cuatro planes y muestra trayectoria nivel formato espacio y plan',()=>{
   const source=fs.readFileSync('src/v91-plans-coverage.js','utf8');
   assert.ok(source.includes("[1,2,3,4].map"));
-  assert.ok(source.includes("Dimensión 1 · Formato curricular"));
-  assert.ok(source.includes("Dimensión 2 · Planes"));
+  assert.ok(source.includes("Agrupamiento · trayectoria"));
+  assert.ok(source.includes("Agrupamiento · nivel"));
+  assert.ok(source.includes("Este espacio"));
+  assert.ok(source.includes("Planes del espacio"));
   assert.ok(source.includes("Primer cuatrimestre · Planes 1 y 2"));
   assert.ok(source.includes("Segundo cuatrimestre · Planes 3 y 4"));
   assert.ok(source.includes("Criterios colegiados de evaluación"));
   assert.ok(source.includes("coverageForIds?.(group,plan.contents)"));
-  assert.ok(source.includes("formatCoverage?.(group)"));
+  assert.ok(source.includes("formatTypeCoverage"));
 });
 
 test('V91 perfil muestra cargos reales y asignaciones',()=>{
