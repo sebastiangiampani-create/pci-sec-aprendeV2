@@ -15,20 +15,14 @@ test('Gestión no referencia el scheduler V68 obsoleto',async()=>{
   }
 });
 
-test('Gestión abre y renderiza el scheduler vigente V65 + V81',async()=>{
-  const home=await readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8');
-  const lean=await readFile(new URL('../src/v71-lean-management.js',import.meta.url),'utf8');
-  assert.match(home,/PCIAnnualSchedulerV65\?\.render/);
-  assert.match(home,/PCIScheduleStableV81\?\.decorate/);
-  assert.match(home,/v65AnnualScheduler/);
-  assert.match(lean,/PCIAnnualSchedulerV65\?\.render/);
-  assert.match(lean,/PCIScheduleStableV81\?\.decorate/);
-});
-
-test('la navegación interna de Gestión busca el contenedor actual de Horarios',async()=>{
-  const nav=await readFile(new URL('../src/v71-management-nav-reset.js',import.meta.url),'utf8');
-  assert.match(nav,/\$\('v65AnnualScheduler'\)/);
-  assert.doesNotMatch(nav,/v68AnnualScheduler/);
+test('V91 retira Horarios del recorrido activo de Gestión',async()=>{
+  const [home,app]=await Promise.all([
+    readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8'),
+    readFile(new URL('../app.html',import.meta.url),'utf8')
+  ]);
+  assert.doesNotMatch(home,/key:'horarios'/);
+  assert.doesNotMatch(home,/PCIAnnualSchedulerV65|PCIScheduleStableV81/);
+  assert.doesNotMatch(app,/src\/v65-annual-scheduler\.js|src\/v81-stable-scheduler\.js/);
 });
 
 test('Gestión usa el cargador simple sin versiones manuales',async()=>{
