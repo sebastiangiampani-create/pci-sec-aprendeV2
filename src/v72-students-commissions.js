@@ -45,7 +45,7 @@
   function courseConfigHtml(){
     const orientations=selectedOrientations();
     if(!orientations.length)return '<div class="v72-warning"><strong>No hay orientaciones seleccionadas.</strong> Volvé al Inicio y seleccioná al menos una orientación.</div>';
-    return '<section class="v72-course-config"><div class="eyebrow">Cursos y divisiones</div><h2>Configurar cursos</h2><p>Definí cuántas divisiones tiene cada nivel. Gestión usa esta estructura para comisiones, asignaciones, estudiantes y horarios.</p><div class="v72-course-config-grid">'+orientations.map(orientation=>{
+    return '<section class="v72-course-config"><div class="eyebrow">Cursos y divisiones</div><h2>Configurar cursos</h2><p>Definí cuántas divisiones tiene cada nivel. Gestión usa esta estructura para comisiones, asignaciones, estudiantes y exportaciones docentes.</p><div class="v72-course-config-grid">'+orientations.map(orientation=>{
       const base=baseCfgApi()?.orientationConfig?.(orientation);
       return '<article class="v72-course-config-card"><h3>'+esc(orientation)+'</h3><div class="v72-course-years">'+[1,2,3,4,5].map(year=>{
         const labels=labelsFor(orientation,year);
