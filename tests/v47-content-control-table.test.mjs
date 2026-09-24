@@ -34,8 +34,8 @@ test('r47 no modifica ni parchea el motor V47 de Desarrollo Curricular',async()=
   assert.doesNotMatch(v47,/PCIContentControlV84|v84ContentControl|data-v84-control/);
 });
 
-test('el loader productivo incorpora solamente el nuevo módulo de control',async()=>{
-  const loader=await readFile(new URL('../app-safe.html',import.meta.url),'utf8');
+test('el cargador principal incorpora el módulo de control',async()=>{
+  const loader=await readFile(new URL('../app.html',import.meta.url),'utf8');
   assert.match(loader,/src\/v84-content-control-table\.js/);
 });
 
