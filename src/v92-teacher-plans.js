@@ -57,7 +57,6 @@
       if(!group)return null;
       const format=cover?.formatCoverage?.(group)||{total:0,used:0,percent:0,year:group.year,bySubject:[]};
       const plans=plansApi?.allPlans?.(group)||[];
-      const visible=plansApi?.visiblePlanNumbers?.(group)||[1,2,3,4];
       const subjects=[...new Set((phase?.members?.(group)||[]).map(x=>String(x?.name||'').trim()).filter(Boolean))];
       return {
         id:group.id,
@@ -67,7 +66,7 @@
         area:group.area,
         subjects,
         format,
-        plans:plans.filter(p=>visible.includes(Number(p.number))).map(p=>({
+        plans:plans.map(p=>({
           number:Number(p.number),
           name:String(p.name||`Plan ${p.number}`),
           criteria:String(p.criteria||''),
@@ -104,11 +103,18 @@
 
   const pct=v=>Number(v?.total)?`${Number(v.percent||0).toLocaleString('es-AR',{maximumFractionDigits:1})}%`:'—';
 
+  function subjectCoverage(result){
+    const rows=result?.bySubject||[];
+    if(!rows.length)return '';
+    return `<div class="v92-subject-coverage">${rows.map(x=>`<span><strong>${esc(x.subject)}</strong><b>${Number(x.percent||0).toLocaleString('es-AR',{maximumFractionDigits:1})}%</b><small>${x.used}/${x.total}</small></span>`).join('')}</div>`;
+  }
+
   function planMini(plan){
     return `<article class="v92-plan-mini">
       <div class="v92-plan-mini-head"><div><small>Plan ${plan.number}</small><strong>${esc(plan.name)}</strong></div><b>${pct(plan.coverage)}</b></div>
       <div class="v92-meter"><span style="width:${Math.min(100,Number(plan.coverage?.percent)||0)}%"></span></div>
       <span class="v92-detail">${plan.coverage?.total?`${plan.coverage.used}/${plan.coverage.total} contenidos prescriptos`:'Sin universo calculable'}</span>
+      ${subjectCoverage(plan.coverage)}
     </article>`;
   }
 
@@ -123,6 +129,7 @@
         <div class="v92-format-pct"><small>Cobertura del formato</small><strong>${pct(space.format)}</strong></div>
       </header>
       <div class="v92-meter v92-format-meter"><span style="width:${Math.min(100,Number(space.format?.percent)||0)}%"></span></div>
+      ${subjectCoverage(space.format)}
       <div class="v92-plans">${space.plans.map(planMini).join('')}</div>
     </article>`;
   }
