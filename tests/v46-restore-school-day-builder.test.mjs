@@ -12,13 +12,13 @@ test('Jornada escolar sigue existiendo como módulo V51 independiente',async()=>
   assert.match(source,/PCIScheduleConfigV51=\{[^}]*ensureSection/);
 });
 
-test('Gestión → Horarios incluye Jornada escolar junto al constructor anual',async()=>{
-  const source=await readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8');
-  assert.match(source,/find:\(\)=>\[\$\('v51ScheduleConfig'\),\$\('v65AnnualScheduler'\)\]/);
-  assert.match(source,/PCIScheduleConfigV51\?\.ensureSection\?\.\(\)/);
-  assert.match(source,/PCIAnnualSchedulerV65\?\.render\?\.\(\)/);
-  assert.match(source,/PCIScheduleStableV81\?\.decorate\?\.\(\)/);
-  assert.match(source,/PCIScheduleViews\?\.render\?\.\(\)/);
+test('V91 conserva Jornada escolar como código legado pero no la carga en Gestión',async()=>{
+  const [management,app]=await Promise.all([
+    readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8'),
+    readFile(new URL('../app.html',import.meta.url),'utf8')
+  ]);
+  assert.doesNotMatch(management,/key:'horarios'|PCIScheduleConfigV51|PCIAnnualSchedulerV65/);
+  assert.doesNotMatch(app,/src\/v51-school-timetable-config\.js|src\/v65-annual-scheduler\.js/);
 });
 
 test('r46 mantiene Ofrecimiento fuera de Horarios',async()=>{
