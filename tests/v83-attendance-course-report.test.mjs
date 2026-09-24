@@ -101,7 +101,7 @@ test('reporte anual conserva todos los estudiantes de la comisión',async()=>{
 test('r39 agrega la tercera pestaña y se carga después de regularidad',async()=>{
   const [moduleSource,loader]=await Promise.all([
     readFile(new URL('../src/v83-attendance-course-report.js',import.meta.url),'utf8'),
-    readFile(new URL('../app-safe.html',import.meta.url),'utf8')
+    readFile(new URL('../app.html',import.meta.url),'utf8')
   ]);
   assert.match(moduleSource,/Reporte por curso/);
   assert.match(moduleSource,/Ciclo lectivo completo/);
