@@ -46,6 +46,6 @@ test('la publicación usa una versión de caché propia y sincronizada',async()=
   ]);
   const loaderVersion=loader.match(/app\.html\?v=([^'"]+)/)?.[1]||'';
   const indexVersion=index.match(/app-safe\.html\?v=([^'"]+)/)?.[1]||'';
-  assert.equal(loaderVersion,'20260923-v88-official-branding');
+  assert.equal(loaderVersion,'20260924-v89-single-footer');
   assert.equal(indexVersion,loaderVersion);
 });
