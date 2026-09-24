@@ -100,7 +100,7 @@ test('Asistencia se carga en Inicio y ya no forma parte de Gestión',async()=>{
   const [attendance,management,loader]=await Promise.all([
     readFile(new URL('../src/v78-asistencia.js',import.meta.url),'utf8'),
     readFile(new URL('../src/v73-management-home.js',import.meta.url),'utf8'),
-    readFile(new URL('../app-safe.html',import.meta.url),'utf8')
+    readFile(new URL('../app.html',import.meta.url),'utf8')
   ]);
   assert.match(attendance,/document\.querySelector\('main\.wrap'\)/);
   assert.doesNotMatch(attendance,/v48InstitutionalContent/);
