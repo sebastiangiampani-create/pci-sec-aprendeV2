@@ -5,14 +5,12 @@
   const defs=[
     {key:'docentes',title:'Docentes y cargos',desc:'Planta docente, cargos y datos de identificación.',icon:'👥',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71m-teacher-section')]},
-    {key:'asignaciones',title:'Asignaciones',desc:'Vinculación de docentes con materias, espacios, niveles y cursos.',icon:'↔',
+    {key:'asignaciones',title:'Asignación a espacios',desc:'Vinculación de cada docente con sus espacios curriculares, nivel y curso.',icon:'↔',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71o-assignment')]},
-    {key:'comisiones',title:'Cursos, comisiones y estudiantes',desc:'Cursos y divisiones de la escuela con sus listados de estudiantes.',icon:'▤',
-      find:()=>[$('v72StudentsCommissions')].filter(Boolean)},
+    {key:'planes',title:'Planes por docente',desc:'Espacios y planes que corresponden a cada docente, con sus porcentajes de cobertura.',icon:'▦',
+      find:()=>[$('v92TeacherPlans')].filter(Boolean)},
     {key:'excel',title:'Carga masiva',desc:'Importación de planta, cargos y asignaciones mediante Excel.',icon:'⇩',
-      find:()=>[$('v71SimpleAssignmentExcel')].filter(Boolean)},
-    {key:'respaldo',title:'Respaldo',desc:'Exportación e impresión de la gestión institucional.',icon:'□',
-      find:()=>[$('v68InstitutionalExport')].filter(Boolean).concat(findByHeading(/Descargar e imprimir|respaldo/i))}
+      find:()=>[$('v71SimpleAssignmentExcel')].filter(Boolean)}
   ];
 
   function host(){return $('v48InstitutionalContent')}
@@ -26,23 +24,17 @@
     return state.institutional;
   }
   function rows(){return window.PCIInstitutionalV48?.allImplementationRows?.()||[]}
-  function commissionDefs(){return window.PCIStudentsCommissionsV72?.commissionDefs?.()||[]}
-
   function metrics(){
     const r=institutional(),all=rows(),teachers=Object.values(r.teachers||{}),assigned=all.filter(x=>r.assignments?.[x.instanceId]).length;
-    const commissions=commissionDefs(),validKeys=new Set(commissions.map(x=>x.key));
-    const students=new Set();
-    for(const [k,c] of Object.entries(r.commissions||{}))if(validKeys.has(k))for(const dni of c.students||[])students.add(dni);
-    const loadedCommissions=commissions.filter(c=>(r.commissions?.[c.key]?.students||[]).length>0).length;
-    return {teachers,assigned,total:all.length,commissions,loadedCommissions,students:students.size};
+    const teachersAssigned=new Set(all.map(x=>r.assignments?.[x.instanceId]).filter(Boolean));
+    return {teachers,assigned,total:all.length,teachersAssigned:teachersAssigned.size};
   }
 
   function statusFor(key,m){
     if(key==='docentes')return `${m.teachers.length} docentes cargados`;
     if(key==='asignaciones')return `${m.assigned}/${m.total} espacios asignados`;
-    if(key==='comisiones')return `${m.commissions.length} cursos · ${m.students} estudiantes`;
-    if(key==='excel')return 'Planta y asignaciones';
-    if(key==='respaldo')return 'Exportación institucional';
+    if(key==='planes')return `${m.teachersAssigned} docentes con asignación`;
+    if(key==='excel')return 'Planta, cargos y asignaciones';
     return '';
   }
 
@@ -58,7 +50,6 @@
     const m=metrics();
     const alerts=[];
     if(m.total-m.assigned>0)alerts.push(`${m.total-m.assigned} espacios sin docente`);
-    if(m.commissions.length-m.loadedCommissions>0)alerts.push(`${m.commissions.length-m.loadedCommissions} comisiones sin listado`);
 
 
     home.innerHTML=`
@@ -66,13 +57,13 @@
         <div>
           <div class="eyebrow">Gestión institucional</div>
           <h2>Organización docente y académica</h2>
-          <p>Administrá docentes, cargos, asignaciones, cursos y estudiantes. Esta información define permisos y alimenta los planes y exportaciones del Desarrollo Curricular.</p>
+          <p>Administrá docentes, cargos y asignaciones a espacios curriculares. Desde esas asignaciones se determinan los planes que le corresponden a cada docente y sus porcentajes de cobertura.</p>
         </div>
         <div class="v73-kpis">
           <span><strong>${m.teachers.length}</strong> docentes</span>
-          <span><strong>${m.assigned}/${m.total}</strong> asignaciones</span>
-          <span><strong>${m.students}</strong> estudiantes</span>
-          <span><strong>${m.commissions.length}</strong> comisiones</span>
+          <span><strong>${m.assigned}/${m.total}</strong> espacios asignados</span>
+          <span><strong>${m.teachersAssigned}</strong> docentes con espacios</span>
+          <span><strong>4</strong> planes por nivel</span>
         </div>
       </div>
       ${alerts.length?`<div class="v73-alert"><strong>Para revisar:</strong> ${alerts.join(' · ')}</div>`:'<div class="v73-ok">Gestión sin alertas críticas en este momento.</div>'}
@@ -109,9 +100,8 @@
 
   function prepareModule(key){
     try{
-      if(key==='comisiones')window.PCIStudentsCommissionsV72?.render?.();
+      if(key==='planes')window.PCITeacherPlansV92?.render?.();
       if(key==='excel')window.PCISimpleAssignmentExcelV71?.render?.();
-      if(key==='respaldo')window.PCIInstitutionalExportV68?.decorate?.();
     }catch(e){console.warn('V73 prepare module',key,e)}
   }
 
