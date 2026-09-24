@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/v48-institucional
-      - feature/v66-institucional-general
-      - feature/v69-big-block-fixes
   pull_request:
   workflow_dispatch:
 
@@ -28,6 +25,7 @@ jobs:
             echo "Checking $file"
             node --check "$file"
           done < <(find src -type f -name '*.js' -print0)
+
       - name: Check current entry wiring
         shell: bash
         run: |
@@ -38,31 +36,33 @@ jobs:
             echo "No se permiten versiones manuales de cache en la entrada."
             exit 1
           fi
-          for needle in             "src/v71-management-nav-reset.js"             "src/v72-students-commissions.js"             "src/v78-asistencia.js"             "src/v79-regularidad.js"             "src/v76-calificaciones.js"             "src/v77-boletines-cierres.js"             "src/v80-access-control.js"             "src/v81-stable-scheduler.js"; do
+
+          for needle in             "src/v47-phase2-matrix.js"             "src/v59-phase2-annual-matrix.js"             "src/v48-institutional-layer.js"             "src/v71-lean-management.js"             "src/v71-simple-assignment-excel.js"             "src/v72-students-commissions.js"             "src/v73-management-home.js"             "src/v80-access-control.js"             "src/v85-access-panel.js"             "src/v91-coverage-core.js"             "src/v91-plans-coverage.js"; do
             grep -Fq "$needle" app.html
           done
+
+          for forbidden in             "src/v78-asistencia.js"             "src/v79-regularidad.js"             "src/v83-attendance-course-report.js"             "src/v76-calificaciones.js"             "src/v77-boletines-cierres.js"             "src/v51-school-timetable-config.js"             "src/v60-availability-preferences.js"             "src/v65-annual-scheduler.js"             "src/v81-stable-scheduler.js"             "src/schedule-views.js"; do
+            if grep -Fq "$forbidden" app.html; then
+              echo "Modulo fuera de alcance sigue activo: $forbidden"
+              exit 1
+            fi
+          done
+
       - name: Run automated tests
         run: npm test
-      - name: Check institutional contracts
+
+      - name: Check V91 curricular contracts
         shell: bash
         run: |
           set -euo pipefail
           node <<'NODE'
           const fs=require('fs');
           const checks={
-            'src/v54-auto-area-coincidence.js':['subjectFO','auto-fg-','auto-fo-'],
-            'src/v65-annual-offer.js':['planningResidualRows','PCIStaffPlanningV68','minimumOutside=team+explicit'],
-            'src/v66-institutional-general.js':['Implementación institucional general','allImplementationRows','openInstitutionalGeneral'],
-            'src/v68-staff-planning.js':['function demand()','function teacherPlanning(','function buildProposal(','assignmentLocks','planningOverrides','state.institutional'],
-            'src/v68-annual-scheduler.js':['function simulateAssignments(','proposalMode','allowMinimumOffer',"engine:'v68-annual'",'teamCommonHours'],
-            'src/v68-institutional-export.js':["add('Demanda'","add('Perfiles'","add('Planificacion'","add('Propuesta'",'respaldo-completo-v68'],
-            'src/v69-institutional-accordion-fix.js':['makeAlwaysOpen','v71e-hidden','PCIInstitutionalAccordionV69'],
-            'src/v70-staffing-workbook-optimizer.js':['DOCENTES','HABILITACIONES','ASIGNACIONES FIJAS','DISPONIBILIDAD','CATALOGO','DNI/CUIL','HC objetivo','HC máximo','function searchProposal(','simulateAssignments','assignmentLocks','v70-schedule-search','PCIStaffingV70'],
-            'src/v71-operational-closeout.js':['v71-annual-strict','teacher-slots-identical','fase1-temporal-pairs','annualScheduleLocks','planningPolicy','two-per-team','Restaurar respaldo completo','before-restore','PCIAnnualSchedulerV71','function buildPairs(','function continuity('],
-            'src/v71-operational-defaults.js':['threePlus:\'two-per-team\'','closedByV71:true','planningOverrides','validated:true','PCIOperationalDefaultsV71'],
-            'src/v71-no-tutoria-contents.js':['no levanta contenidos oficiales de Tutoría','Otros formatos pedagógicos','getAreaPool','PCINoTutoriaContentsV71'],
-            'src/v71-lock-safety.js':['annualScheduleLocks','function validate(assignments','teamMembers','simulateAssignments','PCIAnnualLockSafetyV71']
-            ,'src/v81-stable-scheduler.js':['v81-annual-stable','teacher-slots-identical','sourceSignature','function continuity(','function preflight(','PCIScheduleStableV81']
+            'src/v47-phase2-matrix.js':['canEditGroup','editableSubjectsByOrientation','pci-phase2-groups-rendered'],
+            'src/v80-access-control.js':['teacherEditSubjectsByOrientation','editableSubjectsByOrientation','coordinatorOrientation'],
+            'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Coordinadores por orientación'],
+            'src/v91-coverage-core.js':['universeForGroup','coverageForIds','offLevel','formatCoverage'],
+            'src/v91-plans-coverage.js':['Dimensión 1 · Formato curricular','Dimensión 2 · Planes','Criterios colegiados de evaluación','[1,2,3,4].map']
           };
           for(const [file,needles] of Object.entries(checks)){
             const text=fs.readFileSync(file,'utf8');
@@ -71,20 +71,12 @@ jobs:
               console.log(`OK ${file}: ${needle}`);
             }
           }
+          const data=JSON.parse(fs.readFileSync('data/contenidos-prescriptos-fg.json','utf8'));
+          if(!Array.isArray(data.rows)||data.rows.length<1000)throw new Error('Base prescripta insuficiente.');
+          if(!data.rows.every(x=>x.year>=1&&x.year<=5&&x.subject&&x.text))throw new Error('Base prescripta sin año/materia/contenido.');
+          console.log(`OK base prescripta: ${data.rows.length} contenidos`);
           NODE
-      - name: Check institutional mutation loop regression
-        shell: bash
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const fs=require('fs');
-          const runtime=fs.readFileSync('src/v68-runtime-fix.js','utf8');
-          if(!runtime.includes("if(el&&el.textContent!==value)el.textContent=value"))throw new Error('v68-runtime-fix debe evitar escrituras textContent autorreferentes.');
-          if(/forEach\(x=>x\.textContent='Extra-plan'\)/.test(runtime))throw new Error('Regresion: escritura incondicional Extra-plan reactiva MutationObserver.');
-          const visibility=fs.readFileSync('src/v69-visibility-hotfix.js','utf8');
-          if(visibility.includes("querySelectorAll('#v69ImportHero').forEach(el=>el.remove())"))throw new Error('Regresion: remover v69ImportHero reactiva el ciclo legacy.');
-          console.log('OK: protecciones anti-loop institucional activas.');
-          NODE
+
       - name: Check protected PCI core remains wired
         shell: bash
         run: |
@@ -95,15 +87,5 @@ jobs:
           for(const needle of ['src/v47-phase2-matrix.js','src/v59-phase2-annual-matrix.js','src/v48-institutional-layer.js']){
             if(!app.includes(needle))throw new Error(`app.html: falta ${needle}`);
           }
-          for(const file of ['src/v68-staff-planning.js','src/v69-ux-workflow.js','src/v69-visibility-hotfix.js','src/v69-institutional-accordion-fix.js','src/v70-staffing-workbook-optimizer.js','src/v71-operational-closeout.js','src/v71-operational-defaults.js','src/v71-no-tutoria-contents.js','src/v71-lock-safety.js']){
-            const text=fs.readFileSync(file,'utf8');
-            if(/placements\s*=\s*\{/.test(text))throw new Error(`${file}: no debe reemplazar placements de Fase 1.`);
-          }
-          for(const file of ['src/v70-staffing-workbook-optimizer.js','src/v71-operational-closeout.js','src/v71-operational-defaults.js','src/v71-lock-safety.js']){
-            const text=fs.readFileSync(file,'utf8');
-            if(!text.includes('state.institutional'))throw new Error(`${file}: debe persistir únicamente en state.institutional.`);
-          }
-          console.log('OK: V71 cierra la capa institucional sin reemplazar el núcleo Fase 1/Fase 2.');
+          console.log('OK: Mapa y Desarrollo Curricular permanecen conectados.');
           NODE
-      - name: Smoke test legacy schedule generator
-        run: node tests/v50-generator-smoke.cjs
