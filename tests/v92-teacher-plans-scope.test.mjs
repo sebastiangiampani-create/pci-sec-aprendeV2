@@ -39,7 +39,7 @@ test('V92 Planes por docente usa assignments, placements y las APIs de cobertura
   for(const needle of [
     'allImplementationRows','root().assignments','map.placements','PCIPhase2V28',
     'PCICoverageV91','PCIPlansCoverageV91','formatCoverage','coverageForIds','allPlans',
-    'Cobertura del formato','Plan 1'
+    'Cobertura del formato','plans:plans.map'
   ]) assert.ok(source.includes(needle),needle);
   assert.equal(source.includes('visiblePlanNumbers'),false,'Gestion debe mostrar los cuatro planes');
 });
