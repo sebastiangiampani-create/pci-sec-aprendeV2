@@ -15,22 +15,26 @@
       .top .row.pci-v88-top-row{align-items:center!important}
       .top .row.pci-v88-top-row .pci-v88-ba{display:block;height:32px;width:auto;margin-right:4px}
 
-      #pciV88InstitutionalFooter{margin-top:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:38px 5vw;background:#0d3550;color:#fff;border-radius:24px 24px 0 0}
-      #pciV88InstitutionalFooter .pci-v88-footer-school{display:block;width:min(210px,50vw);height:auto}
-      #pciV88InstitutionalFooter .pci-v88-footer-right{display:flex;align-items:center;gap:16px}
-      #pciV88InstitutionalFooter .pci-v88-footer-right strong{font-size:.9rem}
-      #pciV88InstitutionalFooter .pci-v88-sep{width:1px;height:30px;background:#ffffff66}
-      #pciV88InstitutionalFooter .pci-v88-footer-ba{display:block;height:44px;width:auto}
+      #pciV88InstitutionalFooter{margin-top:28px;display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;padding:42px 4.5vw;background:#0d3550;color:#fff;border-radius:0}
+      #pciV88InstitutionalFooter .pci-v88-footer-school{display:block;width:min(145px,42vw);height:auto}
+      #pciV88InstitutionalFooter .pci-v88-footer-right{display:flex;align-items:center;gap:18px;margin-left:auto}
+      #pciV88InstitutionalFooter .pci-v88-footer-right strong{font-size:1.05rem;font-weight:800;white-space:nowrap}
+      #pciV88InstitutionalFooter .pci-v88-sep{width:2px;height:38px;background:#fff;opacity:.9}
+      #pciV88InstitutionalFooter .pci-v88-footer-ba{display:block;height:48px;width:auto}
 
       #v85AccessPanel .v88-access-brand-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px}
       #v85AccessPanel .v88-access-school{display:block;width:min(285px,66vw);height:54px;object-fit:contain;object-position:left center}
       #v85AccessPanel .v88-access-ba{display:block;height:30px;width:auto}
-      #v85AccessPanel .v88-access-footer{margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:30px 28px;background:#0d3550;color:#fff;border-radius:0 0 28px 28px}
-      #v85AccessPanel .v88-access-footer .v88-access-footer-school{display:block;width:min(205px,48vw);height:auto}
-      #v85AccessPanel .v88-access-footer-right{display:flex;align-items:center;gap:14px}
-      #v85AccessPanel .v88-access-footer-right strong{font-size:.82rem}
-      #v85AccessPanel .v88-access-footer-right .v88-sep{width:1px;height:28px;background:#ffffff66}
-      #v85AccessPanel .v88-access-footer-right img{display:block;height:42px;width:auto}
+      #v85AccessPanel .v88-access-footer{margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;padding:36px 30px;background:#0d3550;color:#fff;border-radius:0}
+      #v85AccessPanel .v88-access-footer .v88-access-footer-school{display:block;width:min(145px,42vw);height:auto}
+      #v85AccessPanel .v88-access-footer-right{display:flex;align-items:center;gap:18px;margin-left:auto}
+      #v85AccessPanel .v88-access-footer-right strong{font-size:1.02rem;font-weight:800;white-space:nowrap}
+      #v85AccessPanel .v88-access-footer-right .v88-sep{width:2px;height:38px;background:#fff;opacity:.9}
+      #v85AccessPanel .v88-access-footer-right img{display:block;height:48px;width:auto}
+      #v85AccessPanel .v88-access-cc{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid #d8e1e8;background:#f8fafb;color:#12395c;font:600 11px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:left}
+      #v85AccessPanel .v88-access-cc img{display:block;width:88px;height:31px;border:0}
+      #v85AccessPanel .v88-access-cc strong,#v85AccessPanel .v88-access-cc span{display:block}
+      #v85AccessPanel .v88-access-cc span{margin-top:2px;font-weight:500;opacity:.78}
 
       @media(max-width:700px){
         .top .brand.pci-v88-brand{min-width:0!important}
@@ -38,13 +42,16 @@
         .top .row.pci-v88-top-row .pci-v88-ba{height:28px}
         #pciV88InstitutionalFooter{padding:30px 22px}
         #pciV88InstitutionalFooter .pci-v88-footer-right{gap:10px;flex-wrap:wrap}
+        #pciV88InstitutionalFooter .pci-v88-footer-right strong{font-size:.9rem}
         #pciV88InstitutionalFooter .pci-v88-footer-ba{height:42px}
         #v85AccessPanel .v88-access-brand-row{align-items:flex-start}
         #v85AccessPanel .v88-access-school{width:min(235px,64vw);height:48px}
         #v85AccessPanel .v88-access-ba{height:26px}
-        #v85AccessPanel .v88-access-footer{padding:26px 20px;gap:14px}
+        #v85AccessPanel .v88-access-footer{padding:28px 20px;gap:14px}
         #v85AccessPanel .v88-access-footer-right{gap:10px;flex-wrap:wrap}
-        #v85AccessPanel .v88-access-footer-right img{height:38px}
+        #v85AccessPanel .v88-access-footer-right strong{font-size:.88rem}
+        #v85AccessPanel .v88-access-footer-right img{height:40px}
+        #v85AccessPanel .v88-access-cc{justify-content:flex-start;padding:12px 20px}
       }
     `;
     document.head.appendChild(style);
@@ -101,6 +108,10 @@
       footer.innerHTML='<img class="v88-access-footer-school" src="'+SCHOOL_LOGO_WHITE+'" alt="Escuela de Maestros">'
         +'<div class="v88-access-footer-right"><strong>Ministerio de Educación</strong><span class="v88-sep"></span><img src="'+BA_FOOTER+'" alt="Buenos Aires Ciudad"></div>';
       shell.appendChild(footer);
+      const cc=document.createElement('div');
+      cc.className='v88-access-cc';
+      cc.innerHTML='<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="license noopener noreferrer"><img src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png" alt="Creative Commons BY-NC-ND 4.0"></a><div><strong>© 2026 Sebastián Giampani</strong><span>Creative Commons BY-NC-ND 4.0 · Atribución · No Comercial · Sin Derivadas</span></div>';
+      shell.appendChild(cc);
     }
   }
 
