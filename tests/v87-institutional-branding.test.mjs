@@ -32,3 +32,17 @@ test('branding responsive',()=>{
   assert.match(core,/@media\(max-width:700px\)/);
   assert.match(panel,/@media\(max-width:760px\)/);
 });
+
+
+test('V90 replica el footer institucional aprobado',()=>{
+  const core=fs.readFileSync('app-core.html','utf8');
+  const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
+  const cc=fs.readFileSync('src/creative-commons-footer.js','utf8');
+  assert.match(core,/background:#0d3550/);
+  assert.match(core,/footer-sep/);
+  assert.match(core,/border-radius:0/);
+  assert.match(panel,/access-cc-footer/);
+  assert.match(panel,/Ministerio de Educación/);
+  assert.match(panel,/Creative Commons BY-NC-ND 4.0/);
+  assert.match(cc,/margin-top:0/);
+});
