@@ -1,11 +1,26 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=app-safe.html?v=20260924-v89-single-footer">
-  <title>PCI Secundaria Aprende · Gestión</title>
-  <script>location.replace('app-safe.html?v=20260924-v89-single-footer');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#12395c">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>PCI Secundaria Aprende · Gestión</title>
 </head>
-<body><p>Abriendo PCI Secundaria Aprende… <a href="app-safe.html?v=20260924-v89-single-footer">Entrar</a></p></body>
+<body>
+<p style="font-family:system-ui;padding:24px">Cargando Gestión…</p>
+<script>
+(async()=>{
+  try{
+    const response=await fetch('app.html',{cache:'no-store'});
+    if(!response.ok)throw new Error('No se pudo cargar la aplicación.');
+    const html=await response.text();
+    document.open();document.write(html);document.close();
+  }catch(error){
+    document.body.innerHTML='<main style="font-family:system-ui;padding:24px"><strong>Error al cargar Gestión.</strong><p>'+String(error.message||error)+'</p></main>';
+  }
+})();
+</script>
+</body>
 </html>
