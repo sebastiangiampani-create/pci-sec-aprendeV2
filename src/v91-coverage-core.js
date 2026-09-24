@@ -15,6 +15,7 @@
     const k=norm(v).replace(/\by\b/g,' y ').replace(/\s+/g,' ').trim();
     return subjectAliases.get(k)||k;
   };
+  const areaKey=v=>norm(v);
 
   async function load(){
     if(rows)return rows;
@@ -26,6 +27,7 @@
       rows=(Array.isArray(data)?data:data.rows||[]).map(x=>({
         ...x,
         year:Number(x.year)||0,
+        _area:areaKey(x.area),
         _subject:subjectKey(x.subject),
         _text:norm(x.text)
       }));
@@ -34,20 +36,26 @@
     return loading;
   }
 
+  function phase(){return window.PCIPhase2V28}
   function memberSubjects(group){
-    const phase=window.PCIPhase2V28;
-    const members=phase?.members?.(group)||[];
-    const names=members.map(x=>String(x?.name||'').trim()).filter(Boolean);
-    if(names.length)return [...new Set(names)];
-    return [];
+    const members=phase()?.members?.(group)||[];
+    return [...new Set(members.map(x=>String(x?.name||'').trim()).filter(Boolean))];
+  }
+  function areaForGroup(group){return String(group?.area||'').trim()}
+
+  function universeForLevel(area,year){
+    if(!rows)return[];
+    const ak=areaKey(area);
+    return rows.filter(x=>x.year===Number(year)&&x._area===ak);
   }
 
+  // V93: el 100 % del espacio ya no depende de las materias que el espacio
+  // seleccionó. Para FG es siempre el universo prescripto del agrupamiento
+  // (área) en ese año/nivel.
   function universeForGroup(group){
-    if(!rows||!group)return[];
-    const year=Number(group.year)||0;
-    const keys=new Set(memberSubjects(group).map(subjectKey));
-    if(!keys.size)return[];
-    return rows.filter(x=>x.year===year&&keys.has(x._subject));
+    if(!group)return[];
+    if(areaForGroup(group)==='Formación Orientada')return foLevelUniverse(group);
+    return universeForLevel(areaForGroup(group),group.year);
   }
 
   function matchesContent(content,candidate){
@@ -67,22 +75,53 @@
     return subset.filter(x=>matchesContent(content,x));
   }
 
-  function coverageForIds(group,ids=[]){
-    const phase=window.PCIPhase2V28;
+  function foPool(){
+    try{return phase()?.getAreaPool?.('Formación Orientada')||[]}
+    catch{return[]}
+  }
+  function explicitYear(v){const n=Number(v);return n>=1&&n<=5?n:0}
+  function foHasYear(){return foPool().some(x=>explicitYear(x?.year))}
+  function foLevelUniverse(group){
+    const pool=foPool();
+    if(!pool.length||!foHasYear())return[];
+    return pool.filter(x=>explicitYear(x?.year)===Number(group?.year));
+  }
+  function foKind(label){
+    return /historia.*orientad|tecnolog/i.test(String(label||''))?'Materia':'Bloque';
+  }
+  function foBreakdown(universe,usedIds){
+    const map=new Map();
+    for(const row of universe){
+      const label=String(row.subject||row.block||'Formación Orientada').replace(/^Bloque:\s*/i,'').trim()||'Formación Orientada';
+      if(!map.has(label))map.set(label,{label,kind:foKind(label),total:0,used:0,percent:0,axes:new Map()});
+      const item=map.get(label);item.total++;
+      if(usedIds.has(String(row.id)))item.used++;
+      const axis=String(row.axis||'').replace(/^Eje:\s*/i,'').trim();
+      if(axis){
+        if(!item.axes.has(axis))item.axes.set(axis,{axis,total:0,used:0,percent:0});
+        const a=item.axes.get(axis);a.total++;if(usedIds.has(String(row.id)))a.used++;
+      }
+    }
+    return [...map.values()].map(x=>{
+      x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
+      x.axes=[...x.axes.values()].map(a=>({...a,percent:a.total?Math.round(a.used/a.total*1000)/10:0}))
+        .sort((a,b)=>a.axis.localeCompare(b.axis,'es'));
+      return x;
+    }).sort((a,b)=>a.label.localeCompare(b.label,'es'));
+  }
+
+  function fgCoverageForIds(group,ids=[]){
     const universe=universeForGroup(group);
     const universeIds=new Set(universe.map(x=>x.id));
     const used=new Map(),offLevel=new Set(),unmatched=new Set();
 
     for(const id of [...new Set(ids||[])]){
-      const content=phase?.findContent?.(id);
+      const content=phase()?.findContent?.(id);
       if(!content||content.component!=='FG')continue;
       const target=canonicalForContent(content,group?.year).filter(x=>universeIds.has(x.id));
-      if(target.length){
-        target.forEach(x=>used.set(x.id,x));
-        continue;
-      }
+      if(target.length){target.forEach(x=>used.set(x.id,x));continue}
       const other=canonicalForContent(content,null).filter(x=>x.year!==Number(group?.year));
-      if(other.length)offLevel.add(id); else unmatched.add(id);
+      if(other.length)offLevel.add(id);else unmatched.add(id);
     }
 
     const bySubject={};
@@ -91,40 +130,108 @@
       bySubject[key]=bySubject[key]||{subject:key,total:0,used:0,percent:0};
       bySubject[key].total++;
     }
-    for(const row of used.values()){
-      const x=bySubject[row.subject];if(x)x.used++;
-    }
+    for(const row of used.values()){const x=bySubject[row.subject];if(x)x.used++}
     for(const x of Object.values(bySubject))x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
 
     return {
-      year:Number(group?.year)||0,
-      total:universe.length,
-      used:used.size,
+      basis:'level',component:'FG',area:areaForGroup(group),year:Number(group?.year)||0,
+      total:universe.length,used:used.size,
       percent:universe.length?Math.round(used.size/universe.length*1000)/10:0,
       bySubject:Object.values(bySubject).sort((a,b)=>a.subject.localeCompare(b.subject,'es')),
-      offLevel:offLevel.size,
-      unmatched:unmatched.size,
-      universe,
-      usedRows:[...used.values()]
+      byComponent:[],offLevel:offLevel.size,unmatched:unmatched.size,
+      universe,usedRows:[...used.values()]
     };
   }
 
-  function formatCoverage(group){
-    return coverageForIds(group,group?.data?.contents||[]);
+  function foCoverageForIds(group,ids=[]){
+    const pool=foPool(),hasYear=foHasYear();
+    const levelUniverse=hasYear?foLevelUniverse(group):[];
+    const levelIds=new Set(levelUniverse.map(x=>String(x.id)));
+    const poolIds=new Set(pool.map(x=>String(x.id)));
+    const requested=[...new Set(ids||[])].map(String);
+    const usedPool=new Set(requested.filter(id=>poolIds.has(id)));
+
+    if(!hasYear){
+      return {
+        basis:'trajectory',component:'FO',area:'Formación Orientada',year:Number(group?.year)||0,
+        total:0,used:usedPool.size,percent:null,bySubject:[],
+        byComponent:foBreakdown(pool,usedPool),offLevel:0,unmatched:requested.filter(id=>!poolIds.has(id)).length,
+        universe:[],usedRows:[],
+        trajectoryTotal:pool.length,trajectoryUsed:usedPool.size,
+        trajectoryPercent:pool.length?Math.round(usedPool.size/pool.length*1000)/10:0,
+        levelBasisAvailable:false
+      };
+    }
+
+    const used=new Set(requested.filter(id=>levelIds.has(id)));
+    const offLevel=new Set(requested.filter(id=>poolIds.has(id)&&!levelIds.has(id)));
+    return {
+      basis:'level',component:'FO',area:'Formación Orientada',year:Number(group?.year)||0,
+      total:levelUniverse.length,used:used.size,
+      percent:levelUniverse.length?Math.round(used.size/levelUniverse.length*1000)/10:0,
+      bySubject:[],byComponent:foBreakdown(levelUniverse,used),
+      offLevel:offLevel.size,unmatched:requested.filter(id=>!poolIds.has(id)).length,
+      universe:levelUniverse,usedRows:levelUniverse.filter(x=>used.has(String(x.id))),
+      levelBasisAvailable:true
+    };
   }
 
+  function coverageForIds(group,ids=[]){
+    return areaForGroup(group)==='Formación Orientada'?foCoverageForIds(group,ids):fgCoverageForIds(group,ids);
+  }
+
+  const unionIds=groups=>[...new Set((groups||[]).flatMap(g=>g?.data?.contents||[]))];
+
+  function groupingLevelCoverage(group,allGroups=[]){
+    const relevant=(allGroups||[]).filter(g=>g&&g.area===group?.area&&Number(g.year)===Number(group?.year));
+    return coverageForIds(group,unionIds(relevant));
+  }
+
+  function formatTypeCoverage(group,allGroups=[]){
+    const relevant=(allGroups||[]).filter(g=>g&&g.area===group?.area&&Number(g.year)===Number(group?.year)&&g.type===group?.type);
+    return coverageForIds(group,unionIds(relevant));
+  }
+
+  function trajectoryCoverage(area,allGroups=[]){
+    const relevant=(allGroups||[]).filter(g=>g?.area===area);
+    if(area==='Formación Orientada'){
+      const pool=foPool(),used=new Set(unionIds(relevant).map(String).filter(id=>pool.some(x=>String(x.id)===id)));
+      return {
+        basis:'trajectory',component:'FO',area,total:pool.length,used:used.size,
+        percent:pool.length?Math.round(used.size/pool.length*1000)/10:0,
+        bySubject:[],byComponent:foBreakdown(pool,used)
+      };
+    }
+    const universe=(rows||[]).filter(x=>x._area===areaKey(area));
+    const used=new Map();
+    for(const g of relevant){
+      for(const id of [...new Set(g?.data?.contents||[])]){
+        const content=phase()?.findContent?.(id);
+        if(!content||content.component!=='FG')continue;
+        canonicalForContent(content,g.year).filter(x=>x._area===areaKey(area)).forEach(x=>used.set(x.id,x));
+      }
+    }
+    const bySubject={};
+    for(const row of universe){
+      bySubject[row.subject]=bySubject[row.subject]||{subject:row.subject,total:0,used:0,percent:0};
+      bySubject[row.subject].total++;
+    }
+    for(const row of used.values()){if(bySubject[row.subject])bySubject[row.subject].used++}
+    for(const x of Object.values(bySubject))x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
+    return {
+      basis:'trajectory',component:'FG',area,total:universe.length,used:used.size,
+      percent:universe.length?Math.round(used.size/universe.length*1000)/10:0,
+      bySubject:Object.values(bySubject).sort((a,b)=>a.subject.localeCompare(b.subject,'es')),byComponent:[]
+    };
+  }
+
+  function formatCoverage(group){return coverageForIds(group,group?.data?.contents||[])}
   async function ready(){await load();return api}
 
   const api={
-    ready,load,
-    rows:()=>rows||[],
-    normalize:norm,
-    subjectKey,
-    memberSubjects,
-    universeForGroup,
-    canonicalForContent,
-    coverageForIds,
-    formatCoverage
+    ready,load,rows:()=>rows||[],normalize:norm,subjectKey,memberSubjects,areaForGroup,
+    universeForLevel,universeForGroup,canonicalForContent,coverageForIds,formatCoverage,
+    groupingLevelCoverage,formatTypeCoverage,trajectoryCoverage,foHasYear,foPool,foBreakdown
   };
   window.PCICoverageV91=api;
   window.addEventListener('pci-app-ready',()=>ready().catch(e=>console.error('[V91 coverage]',e)));
