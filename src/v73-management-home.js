@@ -3,21 +3,15 @@
   let timer=null,activeKey='home',applying=false;
 
   const defs=[
-    {key:'docentes',title:'Docentes y cargos',desc:'Planta docente, cargos, bolsas de horas y carga disponible.',icon:'👥',
+    {key:'docentes',title:'Docentes y cargos',desc:'Planta docente, cargos y datos de identificación.',icon:'👥',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71m-teacher-section')]},
-    {key:'asignaciones',title:'Asignaciones',desc:'Asignación frente a curso desde las materias y agrupamientos del Mapa de la Oferta.',icon:'↔',
+    {key:'asignaciones',title:'Asignaciones',desc:'Vinculación de docentes con materias, espacios, niveles y cursos.',icon:'↔',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71o-assignment')]},
-    {key:'comisiones',title:'Cursos, comisiones y estudiantes',desc:'Cursos y divisiones de la escuela, con sus listados de estudiantes.',icon:'▤',
+    {key:'comisiones',title:'Cursos, comisiones y estudiantes',desc:'Cursos y divisiones de la escuela con sus listados de estudiantes.',icon:'▤',
       find:()=>[$('v72StudentsCommissions')].filter(Boolean)},
-    {key:'equipos',title:'Equipos y reuniones',desc:'Equipos derivados de los agrupamientos reales y coincidencias semanales.',icon:'◎',
-      find:()=>[$('v53Workload')].filter(Boolean)},
-    {key:'disponibilidad',title:'Disponibilidad',desc:'Días disponibles, no disponibles y preferencias de cada docente.',icon:'◫',
-      find:()=>[$('v60Availability')].filter(Boolean)},
-    {key:'horarios',title:'Horarios',desc:'Jornada escolar, generación y vistas por curso, docente y reuniones.',icon:'◷',
-      find:()=>[$('v51ScheduleConfig'),$('v65AnnualScheduler')].filter(Boolean).concat(findByHeading(/Vistas del horario|horario institucional|grilla|horario/i)).filter((x,i,a)=>a.indexOf(x)===i)},
     {key:'excel',title:'Carga masiva',desc:'Importación de planta, cargos y asignaciones mediante Excel.',icon:'⇩',
       find:()=>[$('v71SimpleAssignmentExcel')].filter(Boolean)},
-    {key:'respaldo',title:'Respaldo',desc:'Exportación, impresión y respaldo de la gestión institucional.',icon:'□',
+    {key:'respaldo',title:'Respaldo',desc:'Exportación e impresión de la gestión institucional.',icon:'□',
       find:()=>[$('v68InstitutionalExport')].filter(Boolean).concat(findByHeading(/Descargar e imprimir|respaldo/i))}
   ];
 
@@ -40,19 +34,13 @@
     const students=new Set();
     for(const [k,c] of Object.entries(r.commissions||{}))if(validKeys.has(k))for(const dni of c.students||[])students.add(dni);
     const loadedCommissions=commissions.filter(c=>(r.commissions?.[c.key]?.students||[]).length>0).length;
-    const teams=Object.values(r.areaTeams||{});
-    const availCount=Object.keys(r.availabilityPreferences||r.availability||{}).length;
-    const scheduleCount=(r.annualScheduleVersions||[]).length,scheduleStatus=window.PCIScheduleStableV81?.status?.()||null;
-    return {teachers,assigned,total:all.length,commissions,loadedCommissions,students:students.size,teams,availCount,scheduleCount,scheduleStatus};
+    return {teachers,assigned,total:all.length,commissions,loadedCommissions,students:students.size};
   }
 
   function statusFor(key,m){
     if(key==='docentes')return `${m.teachers.length} docentes cargados`;
     if(key==='asignaciones')return `${m.assigned}/${m.total} espacios asignados`;
     if(key==='comisiones')return `${m.commissions.length} cursos · ${m.students} estudiantes`;
-    if(key==='equipos')return `${m.teams.length} equipos detectados`;
-    if(key==='disponibilidad')return `${m.availCount}/${m.teachers.length} docentes configurados`;
-    if(key==='horarios')return m.scheduleStatus?.label||(m.scheduleCount?'Borrador generado':'Pendiente de generar');
     if(key==='excel')return 'Planta y asignaciones';
     if(key==='respaldo')return 'Exportación institucional';
     return '';
@@ -71,21 +59,14 @@
     const alerts=[];
     if(m.total-m.assigned>0)alerts.push(`${m.total-m.assigned} espacios sin docente`);
     if(m.commissions.length-m.loadedCommissions>0)alerts.push(`${m.commissions.length-m.loadedCommissions} comisiones sin listado`);
-    const over=m.teachers.filter(t=>{
-      const cargos=Array.isArray(t.cargos)&&t.cargos.length?t.cargos:[{type:t.cargoType||'TP4',manualHours:t.manualHours||0}];
-      const nominal=cargos.reduce((n,c)=>n+(c.type==='POR_HORAS'?Number(c.manualHours)||0:({TC:36,TP1:30,TP2:24,TP3:18,TP4:12}[c.type]||0)),0);
-      const front=allAssignedHours(t.id);
-      return front+(t.meetingHours==null?3:Number(t.meetingHours)||0)>nominal;
-    }).length;
-    if(over)alerts.push(`${over} docentes con sobreasignación`);
-    if(m.scheduleStatus?.state==='stale')alerts.push('horario vigente desactualizado');
+
 
     home.innerHTML=`
       <div class="v73-hero">
         <div>
           <div class="eyebrow">Gestión institucional</div>
           <h2>Organización docente y académica</h2>
-          <p>Accedé a cada módulo sin recorrer una página interminable. Toda la información sigue conectada con el Mapa de la Oferta y el Desarrollo Curricular.</p>
+          <p>Administrá docentes, cargos, asignaciones, cursos y estudiantes. Esta información define permisos y alimenta los planes y exportaciones del Desarrollo Curricular.</p>
         </div>
         <div class="v73-kpis">
           <span><strong>${m.teachers.length}</strong> docentes</span>
@@ -129,11 +110,8 @@
   function prepareModule(key){
     try{
       if(key==='comisiones')window.PCIStudentsCommissionsV72?.render?.();
-      if(key==='disponibilidad')window.PCIAvailabilityPreferencesV60?.render?.();
       if(key==='excel')window.PCISimpleAssignmentExcelV71?.render?.();
       if(key==='respaldo')window.PCIInstitutionalExportV68?.decorate?.();
-      if(key==='horarios'){window.PCIScheduleConfigV51?.ensureSection?.();window.PCIAnnualSchedulerV65?.render?.();setTimeout(()=>window.PCIScheduleStableV81?.decorate?.(),0)}
-      if(key==='equipos')window.PCIAutoAreaCoincidenceV54?.deriveTeams?.();
     }catch(e){console.warn('V73 prepare module',key,e)}
   }
 
@@ -143,13 +121,6 @@
     prepareModule(key);
     setTimeout(()=>{
       applyView();
-      if(key==='horarios'){
-        window.PCIScheduleConfigV51?.ensureSection?.();
-        window.PCIAnnualSchedulerV65?.render?.();
-        window.PCIScheduleStableV81?.decorate?.();
-        window.PCIScheduleViews?.render?.();
-        applyView();
-      }
       requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
     },90);
   }
