@@ -58,12 +58,14 @@
       const format=cover?.formatCoverage?.(group)||{total:0,used:0,percent:0,year:group.year,bySubject:[]};
       const plans=plansApi?.allPlans?.(group)||[];
       const visible=plansApi?.visiblePlanNumbers?.(group)||[1,2,3,4];
+      const subjects=[...new Set((phase?.members?.(group)||[]).map(x=>String(x?.name||'').trim()).filter(Boolean))];
       return {
         id:group.id,
         name:group.data?.name||group.name||slot,
         year:group.year,
         term:group.term,
         area:group.area,
+        subjects,
         format,
         plans:plans.filter(p=>visible.includes(Number(p.number))).map(p=>({
           number:Number(p.number),
@@ -86,7 +88,7 @@
         if(!bySpace.has(key)){
           const data=groupData(row.orientation,slot);
           if(!data)continue;
-          bySpace.set(key,{...data,orientation:row.orientation,courses:new Set(),subjects:new Set()});
+          bySpace.set(key,{...data,orientation:row.orientation,courses:new Set(),subjects:new Set(data.subjects||[])});
         }
         const x=bySpace.get(key);
         x.courses.add(row.course||`${row.year}.º ${row.division||''}`.trim());
