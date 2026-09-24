@@ -27,6 +27,17 @@ test('V88 muestra branding oficial tambien en acceso',()=>{
   assert.match(source,/BA · Gobierno de la Ciudad de Buenos Aires/);
 });
 
+test('V88 reproduce el footer aprobado y separa Creative Commons',()=>{
+  const source=fs.readFileSync('src/v87-institutional-branding.js','utf8');
+  const cc=fs.readFileSync('src/creative-commons-footer.js','utf8');
+  assert.match(source,/v88-access-cc/);
+  assert.match(source,/Ministerio de Educación/);
+  assert.match(source,/pci-v88-sep/);
+  assert.match(source,/background:#0d3550/);
+  assert.match(source,/border-radius:0/);
+  assert.match(cc,/margin-top:0/);
+});
+
 test('V88 mantiene responsive',()=>{
   const source=fs.readFileSync('src/v87-institutional-branding.js','utf8');
   assert.match(source,/@media\(max-width:700px\)/);
