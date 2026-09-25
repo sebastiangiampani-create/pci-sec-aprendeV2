@@ -54,7 +54,7 @@
     if(!rows.length)return '';
     return `<div class="v93-components">${rows.map(x=>`
       <section class="v93-component">
-        <div class="v93-component-head"><div><small>${esc(x.kind||'Componente')}</small><strong>${esc(x.label)}</strong></div><b>${x.percent}%</b></div>
+        <div class="v93-component-head"><div><small>${esc(x.kind||'Componente')}</small><strong>${esc(x.label)}</strong></div><b>${x.used}/${x.total} · ${x.percent}%</b></div>
         <div class="v91-bar"><span style="width:${Math.min(100,x.percent)}%"></span></div>
         ${(x.axes||[]).length?`<div class="v93-axes">${x.axes.map(a=>`<div><span>${esc(a.axis)}</span><strong>${a.used}/${a.total} · ${a.percent}%</strong></div>`).join('')}</div>`:''}
       </section>`).join('')}</div>`;
