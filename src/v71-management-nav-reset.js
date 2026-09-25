@@ -51,7 +51,7 @@
   function resetManagement(){
     const hasData=state?.institutional&&Object.keys(state.institutional).length>0;
     const message=hasData
-      ?'Esto borra SOLO Gestión Institucional: docentes, asignaciones, disponibilidad, equipos, horarios, comisiones, estudiantes y respaldos internos. Conserva Calificaciones, Cierres/Boletines y Asistencia. Fase 1 y Fase 2 no se modifican. ¿Querés reiniciar Gestión?'
+      ?'Esto borra SOLO Gestión Institucional: docentes, cargos, asignaciones, coordinaciones y respaldos internos. Conserva Calificaciones, Cierres/Boletines y Asistencia. Fase 1 y Fase 2 no se modifican. ¿Querés reiniciar Gestión?'
       :'Gestión Institucional ya está vacía. ¿Querés recargarla desde cero?';
     if(!window.confirm(message))return;
     try{
