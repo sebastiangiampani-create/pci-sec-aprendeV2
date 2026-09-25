@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 
 test('V91 recorta el recorrido a curriculum y gestion necesaria',()=>{
   const app=fs.readFileSync('app.html','utf8');
@@ -24,7 +25,6 @@ test('V91 mantiene la base curricular y de gestion sin reactivar modulos retirad
 });
 
 test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=>{
-  const zlib=require('node:zlib');
   const encoded=fs.readFileSync('data/curriculum_v96/fg_all.txt','utf8').trim();
   const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
   assert.equal(rows.length,979);
