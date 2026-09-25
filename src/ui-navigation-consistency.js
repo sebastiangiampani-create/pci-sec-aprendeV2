@@ -9,17 +9,17 @@
       #pciGlobalDock button:hover{background:#eef4f7}#pciGlobalDock button.is-active{background:#12395c;color:#fff}
       #pciGlobalDock .pci-dock-icon{font-size:1rem;font-weight:900;line-height:1}#pciGlobalDock[hidden],#pciGlobalDock button[hidden]{display:none!important}
       #panel .phase-grid>#institutionalCard,#panel #v71LeanPanelEntry{display:none!important}
-      #institutional>.back,#institutional>.pci-backbar,#offer>.back,#offer>.pci-backbar{display:none!important}
-      #proposal [id="v28panel"],#proposal>.back,#proposal>.pci-backbar{display:none!important}
+      #institutional>.pci-backbar,#offer>.pci-backbar{display:none!important}
+      #proposal [id="v28panel"],#proposal>.pci-backbar{display:none!important}
       #proposal #v28back,#proposal #v28mback,#proposal #v28err{display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:38px!important;padding:8px 12px!important;margin:0 0 10px!important;border:1px solid #cfd9e1!important;border-radius:999px!important;background:#fff!important;color:#12395c!important;font-weight:850!important;box-shadow:0 4px 12px rgba(18,57,92,.06)!important}
       #proposal{padding-top:0!important}
       #proposal>.hero{display:none!important}
       #proposal>h2#proposalTitle:empty,#proposal>#proposalTitle:empty{display:none!important;margin:0!important;padding:0!important;height:0!important;min-height:0!important}
       #proposal>.card:empty,#proposal>.panel:empty,#proposal>.card.panel:has(> #proposalTitle:empty):not(:has(:not(#proposalTitle))){display:none!important;margin:0!important;padding:0!important;height:0!important;min-height:0!important;border:0!important}
-      .screen>.back{display:none!important}
+      .screen>.back{display:inline-flex!important;align-items:center;gap:6px;min-height:38px;margin:10px 0 12px;padding:8px 12px;border:1px solid #cfd9e1!important;border-radius:999px!important;background:#fff!important;color:#12395c!important;font-weight:850!important;box-shadow:0 4px 12px rgba(18,57,92,.06)!important}
       @media(max-width:760px){
-        body{padding-bottom:76px}
-        #pciGlobalDock{position:fixed;top:auto;left:0;right:0;bottom:8px;margin:0;z-index:150;padding:0 8px}
+        body{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+        #pciGlobalDock{position:fixed;top:auto;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom,0px));margin:0;z-index:9997;padding:0 8px}
         #pciGlobalDock .pci-dock-inner{width:100%;max-width:none;justify-content:space-around;border-radius:20px;padding:6px;box-sizing:border-box}
         #pciGlobalDock button{min-height:48px;padding:9px 11px;font-size:.68rem}
         #pciGlobalDock .pci-dock-icon{font-size:1.05rem}
@@ -29,10 +29,17 @@
 
   const visible=el=>!!el&&!el.hidden&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden';
   const sectionVisible=id=>visible(document.getElementById(id));
-  function goHome(){window.screen?.('home')}
-  function goOffer(){window.screen?.('offer')}
-  function goProposal(){window.screen?.('proposal');setTimeout(()=>document.getElementById('v28home')?.removeAttribute('hidden'),0)}
+  function closeTransientLayers(){
+    for(const id of ['v38modal','v39modal','v84ContentControl','v93CoverageDashboard']){
+      const el=document.getElementById(id);if(el)el.hidden=true;
+    }
+    document.body.classList.remove('v84cc-open','v93d-open');
+  }
+  function goHome(){closeTransientLayers();window.screen?.('home')}
+  function goOffer(){closeTransientLayers();window.screen?.('offer')}
+  function goProposal(){closeTransientLayers();window.screen?.('proposal');setTimeout(()=>document.getElementById('v28home')?.removeAttribute('hidden'),0)}
   function goManagement(){
+    closeTransientLayers();
     window.screen?.('institutional');
     setTimeout(()=>{const open=document.querySelector('[data-v71n-open],#v71LeanPanelEntry button,#institutional [data-open-management]');if(open)open.click()},60);
   }
