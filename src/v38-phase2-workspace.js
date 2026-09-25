@@ -43,8 +43,10 @@
       .v38-field input,.v38-field textarea{width:100%;padding:10px 11px;border:1px solid #d8e1e8;border-radius:10px;font:inherit;color:#12395c;background:#fff}.v38-field textarea{min-height:88px;resize:vertical}.v38-field textarea.activities{min-height:165px}
       .v38-stage{border:1px solid #d8e1e8;border-radius:12px;overflow:hidden}.v38-stage summary{padding:12px 14px;background:#f1f8f7;font-weight:900;cursor:pointer}.v38-stage-body{display:grid;gap:10px;padding:13px}
       .v38-note{padding:10px 12px;border-radius:10px;background:#f5f8fa;color:#5f7382;font-size:.77rem;line-height:1.4}.v38-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+      .v38-top-actions{display:flex;align-items:flex-start;gap:10px}.v94-plan-title h3{margin:7px 0 2px!important}.v94-plan-title p{margin:0;color:#5f7382;font-size:.8rem}.v94-coverage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.v94-coverage.compact{grid-template-columns:repeat(2,minmax(0,1fr))}.v94-metric{padding:8px 9px;border:1px solid #d8e1e8;border-radius:11px;background:#f9fbfc}.v94-metric.primary{background:#edf7f5;border-color:#cbe6df}.v94-metric span{display:block;color:#5f7382;font-size:.5rem;font-weight:850}.v94-metric strong{display:block;margin-top:3px;color:#12395c;font-size:.78rem}.v94-subjects{grid-column:1/-1;display:grid;gap:6px}.v94-subject{padding:8px;border:1px solid #e0e7eb;border-radius:10px;background:#fff}.v94-subject-head small,.v94-subject-head strong{display:block}.v94-subject-head small{color:#126e65;font-size:.46rem;text-transform:uppercase;font-weight:900}.v94-subject-head strong{margin-top:1px;font-size:.62rem}.v94-subject-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:5px}.v94-subject-metrics span{padding:5px 6px;border-radius:8px;background:#f5f8fa}.v94-subject-metrics small,.v94-subject-metrics b{display:block}.v94-subject-metrics small{color:#5f7382;font-size:.44rem}.v94-subject-metrics b{margin-top:1px;font-size:.54rem;color:#12395c}.v94-axis-list{display:grid;gap:3px;margin-top:6px;padding-left:7px;border-left:2px solid #d7e8e4}.v94-axis-list div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;font-size:.46rem}.v94-axis-list em{grid-column:1/-1;color:#5f7382;font-style:normal}.v94-plan-actions{margin-top:10px!important}.v94-editor-coverage>h3{margin-bottom:8px!important}
       .v38-pick-group{display:grid;gap:7px}.v38-pick-title{margin:8px 0 2px;color:#12395c;font-size:.73rem;font-weight:900}.v38-pick{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:9px;border:1px solid #d8e1e8;border-radius:10px}.v38-pick small{display:block;margin-bottom:3px;color:#5f7382}.v38-pick p{margin:0;line-height:1.35}
-      @media(max-width:760px){.v38-modal{padding:6px;align-items:end}.v38-shell{max-height:95vh;border-radius:16px 16px 7px 7px}.v38-grid,.v38-fields{grid-template-columns:1fr}.v38-field.full{grid-column:auto}.v38-body,.v38-top{padding:13px}.v38-own-head{align-items:flex-start;flex-direction:column}}
+      @media(max-width:760px){.v38-modal{padding:0;align-items:end}.v38-shell{width:100%;max-height:96dvh;border-radius:18px 18px 0 0;padding-bottom:148px}.v38-grid,.v38-fields{grid-template-columns:1fr}.v38-field.full{grid-column:auto}.v38-body{padding:12px}.v38-top{padding:11px 12px;align-items:center}.v38-top-actions{min-width:0;align-items:center}.v38-top-actions>div{min-width:0}.v38-top h2{font-size:1rem;overflow:hidden;text-overflow:ellipsis}.v38-own-head{align-items:flex-start;flex-direction:column}.v38-card{padding:12px}.v94-coverage.compact{grid-template-columns:1fr 1fr}.v94-subject-metrics{grid-template-columns:1fr 1fr}.v38-actions button{min-height:42px}.v94-plan-actions{display:grid;grid-template-columns:1fr 1fr}.v94-plan-actions button{width:100%}.v38-footer{padding-bottom:8px}.v38-top>[data-close]{flex:0 0 auto}}
+      @media(max-width:430px){.v94-coverage.compact{grid-template-columns:1fr}.v94-subject-metrics{grid-template-columns:1fr 1fr}.v38-top-actions>[data-back],.v38-top-actions>[data-back-space]{padding:7px 9px!important;font-size:.6rem!important}.v38-status{font-size:.6rem}}
     `; document.head.appendChild(s);
   }
 
@@ -104,10 +106,65 @@
   }
   function planStatus(p){const stages=STAGES.map(([id])=>p.stages?.[id]||{}),has=!!(p.name||p.synopsis||p.objectives||(p.contentIds||[]).length||stages.some(x=>x.description||x.duration||x.resources||x.activities));if(!has)return'Sin iniciar';if(String(p.objectives||'').trim()&&(p.contentIds||[]).length&&stages.every(x=>String(x.activities||'').trim()))return'Completo';return'En elaboración'}
 
-  function planList(gid){
+  const coverageApi=()=>window.PCICoverageV91||null;
+  const ratio=(used,total)=>Number(total)?Math.round(Number(used||0)/Number(total)*1000)/10:null;
+  const metric=(used,total)=>Number(total)?`${Number(used||0)}/${Number(total)} · ${ratio(used,total)}%`:'—';
+  const dualSpace=g=>['laboratorio','taller'].includes(String(g?.type||'').toLowerCase());
+
+  function planCoverage(g,ids=[]){
+    const api=coverageApi();
+    const level=api?.coverageForIds?.(g,ids)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
+    const space=api?.formatCoverage?.(g)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
+    const levelUsed=Number(level.total)?Number(level.used||0):Number(level.trajectoryUsed||level.used||0);
+    const levelTotal=Number(level.total)||Number(level.trajectoryTotal||0);
+    const levelLabel=Number(level.total)?`Nivel ${g.year}`:'Trayectoria disponible';
+    const spaceUsed=Number(space.used||0);
+    const bySubject=(level.bySubject||[]).map(row=>{
+      const s=(space.bySubject||[]).find(x=>String(x.subject)===String(row.subject))||{used:0};
+      return {label:row.subject,kind:'Materia',levelUsed:Number(row.used||0),levelTotal:Number(row.total||0),spaceTotal:Number(s.used||0)};
+    });
+    const byComponent=(level.byComponent||[]).map(row=>{
+      const s=(space.byComponent||[]).find(x=>String(x.label)===String(row.label))||{used:0,axes:[]};
+      return {
+        label:row.label,kind:row.kind||'Componente',levelUsed:Number(row.used||0),levelTotal:Number(row.total||0),spaceTotal:Number(s.used||0),
+        axes:(row.axes||[]).map(a=>{
+          const sa=(s.axes||[]).find(x=>String(x.axis)===String(a.axis))||{used:0};
+          return {label:a.axis,levelUsed:Number(a.used||0),levelTotal:Number(a.total||0),spaceTotal:Number(sa.used||0)};
+        })
+      };
+    });
+    return {level,space,levelUsed,levelTotal,levelLabel,spaceUsed,bySubject,byComponent};
+  }
+
+  function planCoverageRows(g,p){
+    const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
+    const rows=r.bySubject.length?r.bySubject:r.byComponent;
+    if(!rows.length)return'';
+    return `<div class="v94-subjects">${rows.map(x=>`
+      <section class="v94-subject">
+        <div class="v94-subject-head"><div><small>${esc(x.kind)}</small><strong>${esc(x.label)}</strong></div></div>
+        <div class="v94-subject-metrics">
+          <span><small>${esc(r.levelLabel)}</small><b>${metric(x.levelUsed,x.levelTotal)}</b></span>
+          ${dual?`<span><small>Dentro del espacio</small><b>${metric(x.levelUsed,x.spaceTotal)}</b></span>`:''}
+        </div>
+        ${(x.axes||[]).length?`<div class="v94-axis-list">${x.axes.map(a=>`<div><span>${esc(a.label)}</span><b>${metric(a.levelUsed,a.levelTotal)}</b>${dual?`<em>${metric(a.levelUsed,a.spaceTotal)} del espacio</em>`:''}</div>`).join('')}</div>`:''}
+      </section>`).join('')}</div>`;
+  }
+
+  function planCoverageSummary(g,p,compact=false){
+    const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
+    return `<div class="v94-coverage ${compact?'compact':''}">
+      <div class="v94-metric primary"><span>Aporte al ${esc(r.levelLabel.toLowerCase())}</span><strong>${metric(r.levelUsed,r.levelTotal)}</strong></div>
+      ${dual?`<div class="v94-metric"><span>Dentro del ${g.type==='taller'?'taller':'laboratorio'}</span><strong>${metric(r.levelUsed,r.spaceUsed)}</strong></div>`:''}
+      ${compact?planCoverageRows(g,p):''}
+    </div>`;
+  }
+
+  async function planList(gid){
     const g=group(gid);if(!g)return;const ps=plans(g);
-    openModal(`<div class="v38-top"><div><div class="v28-eye">${esc(g.area)} · ${esc(api()?.typeLabel?.(g.type)||g.type)}</div><h2>Planes bimestrales · ${esc(g.data.name||g.name)}</h2></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><div class="v38-note">${ps.length===4?'Espacio anual: 4 planes bimestrales.':'Espacio cuatrimestral: 2 planes bimestrales.'}</div><div class="v38-grid" style="margin-top:12px">${ps.map(p=>`<article class="v38-card"><span class="v38-status">${esc(planStatus(p))}</span><h3>Plan ${p.number}</h3><p style="margin:0;color:#5f7382">${esc(p.name||`Bimestre ${p.number}`)}</p><div class="v38-actions" style="border:0;padding:0"><button class="main" data-open="${p.number}">Abrir</button><button class="secondary" data-print="${p.number}">Imprimir</button></div></article>`).join('')}</div></div>`);
-    const s=shell();s.querySelector('[data-close]').onclick=closeModal;s.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>planEditor(gid,+b.dataset.open));s.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>printPlan(gid,+b.dataset.print));
+    try{await coverageApi()?.ready?.()}catch(e){console.warn('[V94 cobertura planes]',e)}
+    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back-space>← Volver al espacio</button><div><div class="v28-eye">${esc(g.area)} · ${esc(api()?.typeLabel?.(g.type)||g.type)}</div><h2>Planes bimestrales · ${esc(g.data.name||g.name)}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><div class="v38-note">${ps.length===4?'Espacio anual: 4 planes bimestrales.':'Espacio cuatrimestral: 2 planes bimestrales.'} Los valores muestran contenidos usados/total y porcentaje.</div><div class="v38-grid" style="margin-top:12px">${ps.map(p=>`<article class="v38-card v94-plan-card"><div class="v94-plan-title"><div><span class="v38-status">${esc(planStatus(p))}</span><h3>Plan ${p.number}</h3><p>${esc(p.name||`Bimestre ${p.number}`)}</p></div></div>${planCoverageSummary(g,p,true)}<div class="v38-actions v94-plan-actions"><button class="main" data-open="${p.number}">Abrir</button><button class="secondary" data-print="${p.number}">Imprimir</button></div></article>`).join('')}</div></div>`);
+    const s=shell();s.querySelector('[data-close]').onclick=closeModal;s.querySelector('[data-back-space]').onclick=closeModal;s.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>planEditor(gid,+b.dataset.open));s.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>printPlan(gid,+b.dataset.print));
   }
   function planChoices(g,p){
     const rows=(g.data.contents||[]).map(content).filter(Boolean),official=rows.filter(x=>x.component!=='CUSTOM'),own=rows.filter(x=>x.component==='CUSTOM');
@@ -117,8 +174,8 @@
   function stageEditor(id,label,s){return`<details class="v38-stage" open><summary>${esc(label)}</summary><div class="v38-stage-body"><label class="v38-field full"><span>Presentación de la etapa <small>(opcional)</small></span><textarea data-stage="${id}" data-sfield="description">${esc(s.description)}</textarea></label><label class="v38-field"><span>Duración estimada</span><input data-stage="${id}" data-sfield="duration" value="${esc(s.duration)}"></label><label class="v38-field full"><span>Recursos</span><textarea data-stage="${id}" data-sfield="resources">${esc(s.resources)}</textarea></label><label class="v38-field full"><span>Actividades dirigidas al estudiante</span><textarea class="activities" data-stage="${id}" data-sfield="activities">${esc(s.activities)}</textarea></label></div></details>`}
   function planEditor(gid,n){
     const g=group(gid);if(!g)return;const ps=plans(g),p=ps[n-1];
-    openModal(`<div class="v38-top"><div><div class="v28-eye">${esc(g.area)} · ${esc(g.data.name||g.name)}</div><h2>Plan bimestral ${n} de ${ps.length}</h2></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><form id="v38plan" class="v38-form"><section class="v38-section"><h3>Datos generales</h3><div class="v38-fields"><label class="v38-field"><span>Tipo</span><input readonly value="${esc(api()?.typeLabel?.(g.type)||g.type)}"></label><label class="v38-field"><span>Ubicación</span><input readonly value="${esc(api()?.termText?.(g)||g.term)} · Bimestre ${n}"></label><label class="v38-field full"><span>Nombre del plan</span><input data-pfield="name" value="${esc(p.name)}"></label><label class="v38-field full"><span>Sinopsis</span><textarea data-pfield="synopsis">${esc(p.synopsis)}</textarea></label></div></section><section class="v38-section"><h3>Contenidos del plan</h3>${planChoices(g,p)}</section><section class="v38-section"><h3>Objetivos de aprendizaje</h3><textarea data-pfield="objectives" style="width:100%;min-height:105px;padding:10px;border:1px solid #d8e1e8;border-radius:10px">${esc(p.objectives)}</textarea></section><section class="v38-section"><h3>Etapas del plan</h3><div style="display:grid;gap:10px">${STAGES.map(([id,l])=>stageEditor(id,l,p.stages[id])).join('')}</div></section><div class="v38-footer"><div><button class="v28-btn secondary" type="button" data-back>← Planes</button> <button class="v28-btn secondary" type="button" data-preview>Vista previa / imprimir</button></div><button class="v28-btn primary" type="submit">Guardar plan</button></div></form></div>`);
-    const s=shell();s.querySelector('[data-close]').onclick=closeModal;s.querySelector('[data-back]').onclick=()=>{savePlan(p);planList(gid)};s.querySelector('[data-preview]').onclick=()=>{savePlan(p);printPlan(gid,n)};s.querySelector('#v38plan').onsubmit=e=>{e.preventDefault();savePlan(p);planList(gid)};
+    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back>← Planes</button><div><div class="v28-eye">${esc(g.area)} · ${esc(g.data.name||g.name)}</div><h2>Plan bimestral ${n} de ${ps.length}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><form id="v38plan" class="v38-form"><section class="v38-section"><h3>Datos generales</h3><div class="v38-fields"><label class="v38-field"><span>Tipo</span><input readonly value="${esc(api()?.typeLabel?.(g.type)||g.type)}"></label><label class="v38-field"><span>Ubicación</span><input readonly value="${esc(api()?.termText?.(g)||g.term)} · Bimestre ${n}"></label><label class="v38-field full"><span>Nombre del plan</span><input data-pfield="name" value="${esc(p.name)}"></label><label class="v38-field full"><span>Sinopsis</span><textarea data-pfield="synopsis">${esc(p.synopsis)}</textarea></label></div></section><section class="v38-section v94-editor-coverage"><h3>Cobertura del plan</h3><div id="v94PlanCoverage">${planCoverageSummary(g,p,true)}</div></section><section class="v38-section"><h3>Contenidos del plan</h3>${planChoices(g,p)}</section><section class="v38-section"><h3>Objetivos de aprendizaje</h3><textarea data-pfield="objectives" style="width:100%;min-height:105px;padding:10px;border:1px solid #d8e1e8;border-radius:10px">${esc(p.objectives)}</textarea></section><section class="v38-section"><h3>Etapas del plan</h3><div style="display:grid;gap:10px">${STAGES.map(([id,l])=>stageEditor(id,l,p.stages[id])).join('')}</div></section><div class="v38-footer"><div><button class="v28-btn secondary" type="button" data-back>← Planes</button> <button class="v28-btn secondary" type="button" data-preview>Vista previa / imprimir</button></div><button class="v28-btn primary" type="submit">Guardar plan</button></div></form></div>`);
+    const s=shell();s.querySelector('[data-close]').onclick=closeModal;s.querySelector('[data-back]').onclick=()=>{savePlan(p);planList(gid)};s.querySelector('[data-preview]').onclick=()=>{savePlan(p);printPlan(gid,n)};s.querySelectorAll('[data-pcontent]').forEach(cb=>cb.addEventListener('change',()=>{p.contentIds=[...s.querySelectorAll('[data-pcontent]:checked')].map(x=>String(x.dataset.pcontent));const host=s.querySelector('#v94PlanCoverage');if(host)host.innerHTML=planCoverageSummary(g,p,true)}));s.querySelector('#v38plan').onsubmit=e=>{e.preventDefault();savePlan(p);planList(gid)};
   }
   function savePlan(p){const f=shell()?.querySelector('#v38plan');if(!f)return;f.querySelectorAll('[data-pfield]').forEach(x=>p[x.dataset.pfield]=x.value);p.contentIds=[...f.querySelectorAll('[data-pcontent]:checked')].map(x=>String(x.dataset.pcontent));p.stages=p.stages||{};f.querySelectorAll('[data-stage][data-sfield]').forEach(x=>{const id=x.dataset.stage;p.stages[id]=p.stages[id]||blankStage();p.stages[id][x.dataset.sfield]=x.value});p.updatedAt=new Date().toISOString();persist()}
 
