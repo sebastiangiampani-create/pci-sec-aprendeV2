@@ -36,17 +36,27 @@ async function loadFG(){
     return r.text();
   }));
   const raw=await unzip(parts.join(''));
-  FG=raw.map(row=>({
-    id:String(row.id||stableId('fgv96',[row.year,row.subject,row.axis,row.subaxis,row.text])),
-    component:'FG',
-    year:Number(row.year)||0,
-    area:String(row.area||FG_AREA[String(row.subject||'').trim()]||''),
-    subject:String(row.subject||'').trim(),
-    axis:String(row.axis||'').trim(),
-    subaxis:String(row.subaxis||'').trim(),
-    text:String(row.text||'').trim()
-  }));
+  FG=raw.map(row=>{
+    let id,year,area,subject,axis,subaxis,text;
+    if(Array.isArray(row)){
+      if(row.length>=7)[id,year,area,subject,axis,subaxis,text]=row;
+      else [year,subject,axis,subaxis,text]=row;
+    }else{
+      id=row?.id;
+      year=row?.year??row?.anio??row?.['Año'];
+      area=row?.area;
+      subject=row?.subject??row?.materia??row?.['Materia'];
+      axis=row?.axis??row?.eje??row?.['Eje'];
+      subaxis=row?.subaxis??row?.subeje??row?.['Subeje'];
+      text=row?.text??row?.contenido??row?.['Contenido'];
+    }
+    year=Number(year)||0;subject=String(subject||'').trim();axis=String(axis||'').trim();subaxis=String(subaxis||'').trim();text=String(text||'').trim();
+    area=String(area||FG_AREA[subject]||'').trim();
+    return{id:String(id||stableId('fgv96',[year,subject,axis,subaxis,text])),component:'FG',year,area,subject,axis,subaxis,text};
+  });
   if(FG.length!==979)throw Error(`La base de Formación General cargó ${FG.length} contenidos y se esperaban 979.`);
+  const tutor=FG.filter(x=>norm(x.subject)==='tutoria');
+  if(tutor.length!==19||tutor.some(x=>![1,2].includes(Number(x.year))))throw Error('Tutoría debe estar únicamente en 1.º y 2.º año.');
   return FG;
 }
 async function loadFOAll(){
@@ -57,7 +67,7 @@ async function loadFOAll(){
     return r.text();
   }));
   const raw=await unzip(parts.join(''));
-  if(raw.length!==1049)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos y se esperaban 1049.`);
+  if(raw.length!==860)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos únicos y se esperaban 860.`);
   FO_ALL=raw.map(([orientation,suborientation,block,axis,subaxis,text])=>{
     orientation=String(orientation||'').trim();
     suborientation=String(suborientation||'').trim();
