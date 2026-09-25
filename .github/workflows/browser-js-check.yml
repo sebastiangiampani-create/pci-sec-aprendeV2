@@ -88,11 +88,10 @@ jobs:
           if(JSON.stringify(byYear)!==JSON.stringify({1:218,2:205,3:217,4:198,5:141}))throw new Error('Totales FG por nivel incorrectos: '+JSON.stringify(byYear));
           const foFiles=['fo_all.txt',...Array.from({length:10},(_,i)=>`fo_part${String(i+2).padStart(2,'0')}.txt`)];
           const foEncoded=foFiles.map(x=>fs.readFileSync('data/curriculum_v96/'+x,'utf8').trim()).join('');
-          const foRaw=JSON.parse(zlib.gunzipSync(Buffer.from(foEncoded,'base64')).toString('utf8'));
-          const fo=foRaw.slice(0,860);
-          if(fo.length!==860)throw new Error(`Base FO V96 incorrecta: ${fo.length}`);
+          const fo=JSON.parse(zlib.gunzipSync(Buffer.from(foEncoded,'base64')).toString('utf8'));
+          if(fo.length!==1049)throw new Error(`Base FO V96 incorrecta: ${fo.length}`);
           const unique=new Set(fo.map(x=>JSON.stringify(x)));
-          if(unique.size!==860)throw new Error(`FO contiene duplicados exactos: ${860-unique.size}`);
+          if(unique.size!==1049)throw new Error(`FO contiene duplicados exactos: ${1049-unique.size}`);
           const historia=fo.filter(x=>/historia.*orientad/i.test(String(x[2]||''))).length;
           const tecnologia=fo.filter(x=>/tecnolog/i.test(String(x[2]||''))).length;
           if(historia!==98||tecnologia!==91)throw new Error(`Historia/Tecnología FO incorrectas: ${historia}/${tecnologia}`);
