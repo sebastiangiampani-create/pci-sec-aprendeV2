@@ -28,14 +28,16 @@ test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=
   const files=Array.from({length:9},(_,i)=>`data/curriculum_v96/fg-all-p${i+1}.txt`);
   const encoded=files.map(x=>fs.readFileSync(x,'utf8').trim()).join('');
   const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
+  const year=x=>Number(Array.isArray(x)?(x.length>=7?x[1]:x[0]):(x.year??x.anio??x['Año']));
+  const subject=x=>String(Array.isArray(x)?(x.length>=7?x[3]:x[1]):(x.subject??x.materia??x['Materia']??''));
+  const text=x=>String(Array.isArray(x)?(x.length>=7?x[6]:x[4]):(x.text??x.contenido??x['Contenido']??''));
   assert.equal(rows.length,979);
-  assert.ok(rows.every(x=>Number(x.year)>=1&&Number(x.year)<=5&&x.subject&&x.text));
-  assert.deepEqual([...new Set(rows.map(x=>Number(x.year)))].sort(),[1,2,3,4,5]);
-  const tutor=rows.filter(x=>x.subject==='Tutoría');
+  assert.ok(rows.every(x=>year(x)>=1&&year(x)<=5&&subject(x)&&text(x)));
+  assert.deepEqual([...new Set(rows.map(year))].sort(),[1,2,3,4,5]);
+  const tutor=rows.filter(x=>subject(x)==='Tutoría');
   assert.equal(tutor.length,19);
-  assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
+  assert.deepEqual([...new Set(tutor.map(year))].sort(),[1,2]);
 });
-
 test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
   const source=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(source.includes("universeForLevel"));
