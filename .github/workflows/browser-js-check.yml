@@ -41,7 +41,7 @@ jobs:
             grep -Fq "$needle" app.html
           done
 
-          for forbidden in             "src/v78-asistencia.js"             "src/v79-regularidad.js"             "src/v83-attendance-course-report.js"             "src/v76-calificaciones.js"             "src/v77-boletines-cierres.js"             "src/v51-school-timetable-config.js"             "src/v60-availability-preferences.js"             "src/v65-annual-scheduler.js"             "src/v81-stable-scheduler.js"             "src/schedule-views.js"; do
+          for forbidden in             "src/v78-asistencia.js"             "src/v79-regularidad.js"             "src/v83-attendance-course-report.js"             "src/v76-calificaciones.js"             "src/v77-boletines-cierres.js"             "src/v51-school-timetable-config.js"             "src/v60-availability-preferences.js"             "src/v65-annual-scheduler.js"             "src/v81-stable-scheduler.js"             "src/schedule-views.js"             "src/v69-tutoria-contents.js"; do
             if grep -Fq "$forbidden" app.html; then
               echo "Modulo fuera de alcance sigue activo: $forbidden"
               exit 1
@@ -58,7 +58,7 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const checks={
-            'src/v47-phase2-matrix.js':['canEditGroup','editableSubjectsByOrientation','pci-phase2-groups-rendered'],
+            'src/v47-phase2-matrix.js':['canEditGroup','editableSubjectsByOrientation','pci-phase2-groups-rendered','id="v28level"','loadCurriculum','subaxis','Trayectoria orientada'],
             'src/v80-access-control.js':['teacherEditSubjectsByOrientation','editableSubjectsByOrientation','coordinatorOrientation'],
             'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Ingresar con coordinaciones de Gestión','coordinatorOptions'],
             'src/v91-coverage-core.js':['universeForGroup','coverageForIds','offLevel','formatCoverage'],
@@ -77,10 +77,16 @@ jobs:
               console.log(`OK ${file}: ${needle}`);
             }
           }
-          const data=JSON.parse(fs.readFileSync('data/contenidos-prescriptos-fg.json','utf8'));
-          if(!Array.isArray(data.rows)||data.rows.length<1000)throw new Error('Base prescripta insuficiente.');
-          if(!data.rows.every(x=>x.year>=1&&x.year<=5&&x.subject&&x.text))throw new Error('Base prescripta sin año/materia/contenido.');
-          console.log(`OK base prescripta: ${data.rows.length} contenidos`);
+          const zlib=require('zlib');
+          const fg=JSON.parse(zlib.gunzipSync(Buffer.from(fs.readFileSync('data/curriculum_v96/fg_all.txt','utf8').trim(),'base64')).toString('utf8'));
+          if(fg.length!==979)throw new Error(`Base FG V96 incorrecta: ${fg.length}`);
+          const tutor=fg.filter(x=>x[1]==='Tutoría');
+          if(tutor.length!==19||tutor.some(x=>![1,2].includes(Number(x[0]))))throw new Error('Tutoría debe existir solo en 1.º y 2.º.');
+          const foFiles=['fo_all.txt',...Array.from({length:10},(_,i)=>`fo_part${String(i+2).padStart(2,'0')}.txt`)];
+          const foEncoded=foFiles.map(x=>fs.readFileSync('data/curriculum_v96/'+x,'utf8').trim()).join('');
+          const fo=JSON.parse(zlib.gunzipSync(Buffer.from(foEncoded,'base64')).toString('utf8'));
+          if(fo.length!==1049)throw new Error(`Base FO V96 incorrecta: ${fo.length}`);
+          console.log(`OK bases V96: FG ${fg.length} · FO ${fo.length}`);
           NODE
 
       - name: Check protected PCI core remains wired
