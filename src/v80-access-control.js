@@ -11,6 +11,7 @@
     state.institutional.teachers=state.institutional.teachers||{};
     state.institutional.teacherProfiles=state.institutional.teacherProfiles||{};
     state.institutional.assignments=state.institutional.assignments||{};
+    state.institutional.coordinations=Array.isArray(state.institutional.coordinations)?state.institutional.coordinations:[];
     state.institutional.areaTeams=state.institutional.areaTeams||{};
     state.institutional.students=state.institutional.students||{};
     state.institutional.commissions=state.institutional.commissions||{};
@@ -80,11 +81,38 @@
     return out;
   }
 
+  function coordinatorAssignments(teacherId){
+    const tid=String(teacherId||'');if(!tid)return[];
+    return (root().coordinations||[]).filter(x=>String(x.teacherId||'')===tid);
+  }
+
+  function coordinatorEditableAreasByOrientation(teacherId){
+    const rows=coordinatorAssignments(teacherId),out={};
+    const orientations=[...(state.selected||[])].map(x=>String(x||'').trim()).filter(Boolean);
+    for(const item of rows){
+      if(item.kind==='area'){
+        for(const orientation of orientations){
+          const set=new Set(out[orientation]||[]);
+          set.add(String(item.scope||'').trim());
+          out[orientation]=[...set].filter(Boolean);
+        }
+      }else if(item.kind==='orientation'){
+        const orientation=String(item.scope||'').trim();
+        if(!orientation)continue;
+        const set=new Set(out[orientation]||[]);
+        set.add('Formación Orientada');
+        out[orientation]=[...set];
+      }
+    }
+    return out;
+  }
+
   function normalizeSession(scope={}){
     const role=ROLES.has(scope.role)?scope.role:'admin';
     let teacherId=String(scope.teacherId||'');
     const email=String(scope.email||'').trim();
     if(role==='teacher'&&!teacherId&&email)teacherId=String(teacherByEmail(email)?.id||'');
+    if(role==='coordinator'&&!teacherId&&email)teacherId=String(teacherByEmail(email)?.id||'');
     const coordinatorOrientation=String(scope.coordinatorOrientation||'').trim();
     const coordinatorAreas=Array.isArray(scope.coordinatorAreas)?[...new Set(scope.coordinatorAreas.map(v=>String(v||'').trim()).filter(Boolean))]:[];
     let studentDnis=Array.isArray(scope.studentDnis)?scope.studentDnis.map(cleanDni).filter(Boolean):[];
@@ -100,14 +128,17 @@
     const commissionKeys=role==='teacher'?teacherCommissionKeys(scope.teacherId):[];
     const coordinatorOrientation=String(scope.coordinatorOrientation||'');
     const coordinatorAreas=[...(scope.coordinatorAreas||[])];
-    const editableAreasByOrientation=role==='coordinator'&&coordinatorOrientation?{[coordinatorOrientation]:[...coordinatorAreas]}:areas;
+    const storedCoordinatorAreas=role==='coordinator'?coordinatorEditableAreasByOrientation(scope.teacherId):{};
+    const editableAreasByOrientation=role==='coordinator'
+      ? (Object.keys(storedCoordinatorAreas).length?storedCoordinatorAreas:(coordinatorOrientation?{[coordinatorOrientation]:[...coordinatorAreas]}:{}))
+      : areas;
     return {
       role,
       teacherId:scope.teacherId,
       studentDnis:[...(scope.studentDnis||[])],
       coordinatorOrientation,
       coordinatorAreas,
-      allowedAreasByOrientation:areas,
+      allowedAreasByOrientation:role==='coordinator'?Object.fromEntries((state.selected||[]).map(o=>[o,[...new Set((window.PCIPhase2V28?.groups?.()||[]).map(g=>g.area).filter(Boolean))]])):areas,
       editableAreasByOrientation,
       editableSubjectsByOrientation,
       commissionKeys,
@@ -266,6 +297,6 @@
 
   window.PCIAppAccessV80={
     setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis],coordinatorOrientation:session.coordinatorOrientation||'',coordinatorAreas:[...(session.coordinatorAreas||[])]}),
-    derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,canOpen,apply
+    derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,coordinatorAssignments,coordinatorEditableAreasByOrientation,canOpen,apply
   };
 })();
