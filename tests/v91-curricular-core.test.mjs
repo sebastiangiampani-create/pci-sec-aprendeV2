@@ -25,14 +25,15 @@ test('V91 mantiene la base curricular y de gestion sin reactivar modulos retirad
 });
 
 test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=>{
-  const encoded=fs.readFileSync('data/curriculum_v96/fg_all.txt','utf8').trim();
+  const files=Array.from({length:9},(_,i)=>`data/curriculum_v96/fg-all-p${i+1}.txt`);
+  const encoded=files.map(x=>fs.readFileSync(x,'utf8').trim()).join('');
   const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
   assert.equal(rows.length,979);
-  assert.ok(rows.every(x=>Number(x[0])>=1&&Number(x[0])<=5&&x[1]&&x[4]));
-  assert.deepEqual([...new Set(rows.map(x=>Number(x[0])))].sort(),[1,2,3,4,5]);
-  const tutor=rows.filter(x=>x[1]==='Tutoría');
+  assert.ok(rows.every(x=>Number(x[1])>=1&&Number(x[1])<=5&&x[3]&&x[6]));
+  assert.deepEqual([...new Set(rows.map(x=>Number(x[1])))].sort(),[1,2,3,4,5]);
+  const tutor=rows.filter(x=>x[3]==='Tutoría');
   assert.equal(tutor.length,19);
-  assert.deepEqual([...new Set(tutor.map(x=>Number(x[0])))].sort(),[1,2]);
+  assert.deepEqual([...new Set(tutor.map(x=>Number(x[1])))].sort(),[1,2]);
 });
 
 test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
