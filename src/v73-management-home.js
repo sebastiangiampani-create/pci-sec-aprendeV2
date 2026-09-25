@@ -5,8 +5,8 @@
   const defs=[
     {key:'docentes',title:'Docentes y cargos',desc:'Planta docente, cargos y datos de identificación.',icon:'👥',
       find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71m-teacher-section')]},
-    {key:'asignaciones',title:'Asignación a espacios',desc:'Cruce entre docente, materia, nivel y espacio curricular definido en el Mapa de la Oferta.',icon:'↔',
-      find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71o-assignment')]},
+    {key:'asignaciones',title:'Asignación a espacios',desc:'Cruce docente–espacio y coordinaciones de área/orientación derivadas de la estructura curricular.',icon:'↔',
+      find:()=>[...document.querySelectorAll('#v48InstitutionalContent > .v71o-assignment,#v48InstitutionalContent > .v95-coordination')]},
     {key:'excel',title:'Carga masiva',desc:'Importación de planta, cargos y asignaciones mediante Excel.',icon:'⇩',
       find:()=>[$('v71SimpleAssignmentExcel')].filter(Boolean)}
   ];
@@ -25,12 +25,13 @@
   function metrics(){
     const r=institutional(),all=rows(),teachers=Object.values(r.teachers||{}),assigned=all.filter(x=>r.assignments?.[x.instanceId]).length;
     const teachersAssigned=new Set(all.map(x=>r.assignments?.[x.instanceId]).filter(Boolean));
-    return {teachers,assigned,total:all.length,teachersAssigned:teachersAssigned.size};
+    const coordinations=Array.isArray(r.coordinations)?r.coordinations:[];
+    return {teachers,assigned,total:all.length,teachersAssigned:teachersAssigned.size,coordinations};
   }
 
   function statusFor(key,m){
     if(key==='docentes')return `${m.teachers.length} docentes cargados`;
-    if(key==='asignaciones')return `${m.assigned}/${m.total} espacios asignados`;
+    if(key==='asignaciones')return `${m.assigned}/${m.total} espacios · ${m.coordinations.length} coordinaciones`;
     if(key==='excel')return 'Planta, cargos y asignaciones';
     return '';
   }
@@ -60,6 +61,7 @@
           <span><strong>${m.teachers.length}</strong> docentes</span>
           <span><strong>${m.assigned}/${m.total}</strong> espacios asignados</span>
           <span><strong>${m.teachersAssigned}</strong> docentes con espacios</span>
+          <span><strong>${m.coordinations.length}</strong> coordinaciones</span>
         </div>
       </div>
       ${alerts.length?`<div class="v73-alert"><strong>Para revisar:</strong> ${alerts.join(' · ')}</div>`:'<div class="v73-ok">Gestión sin alertas críticas en este momento.</div>'}
