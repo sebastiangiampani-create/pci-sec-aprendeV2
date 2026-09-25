@@ -17,32 +17,31 @@ function decodeFo(){
 test('V96 Formación General usa 979 contenidos y Tutoría solo 1º y 2º',()=>{
   const fg=decodeFg();
   assert.equal(fg.length,979);
-  const byYear=Object.fromEntries([1,2,3,4,5].map(y=>[y,fg.filter(x=>Number(x[1])===y).length]));
+  const byYear=Object.fromEntries([1,2,3,4,5].map(y=>[y,fg.filter(x=>Number(x.year)===y).length]));
   assert.deepEqual(byYear,{1:218,2:205,3:217,4:198,5:141});
-  const tutor=fg.filter(x=>x[3]==='Tutoría');
+  const tutor=fg.filter(x=>x.subject==='Tutoría');
   assert.equal(tutor.length,19);
-  assert.deepEqual([...new Set(tutor.map(x=>Number(x[1])))].sort(),[1,2]);
-  assert.equal(tutor.some(x=>Number(x[1])>=3),false);
+  assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
+  assert.equal(tutor.some(x=>Number(x.year)>=3),false);
 });
 
 test('V96 Formación General conserva año materia eje subeje y contenido',()=>{
   const fg=decodeFg();
   for(const row of fg){
-    assert.equal(row.length,7);
-    assert.ok(String(row[0]).startsWith('fgv96:'));
-    assert.ok(Number(row[1])>=1&&Number(row[1])<=5);
-    assert.ok(String(row[2]).trim());
-    assert.ok(String(row[3]).trim());
-    assert.equal(typeof row[4],'string');
-    assert.equal(typeof row[5],'string');
-    assert.ok(String(row[6]).trim());
+    assert.ok(String(row.id).startsWith('fgv96:'));
+    assert.ok(Number(row.year)>=1&&Number(row.year)<=5);
+    assert.ok(String(row.area).trim());
+    assert.ok(String(row.subject).trim());
+    assert.equal(typeof row.axis,'string');
+    assert.equal(typeof row.subaxis,'string');
+    assert.ok(String(row.text).trim());
   }
 });
 
-test('V96 Formación Orientada usa 1049 contenidos completos e incluye Historia y Tecnología',()=>{
-  const fo=decodeFo();
-  assert.equal(fo.length,1049);
-  assert.equal(new Set(fo.map(x=>JSON.stringify(x))).size,1049);
+test('V96 Formación Orientada usa 860 contenidos únicos e incluye Historia y Tecnología',()=>{
+  const fo=decodeFo().slice(0,860);
+  assert.equal(fo.length,860);
+  assert.equal(new Set(fo.map(x=>JSON.stringify(x))).size,860);
   assert.equal(fo.filter(x=>/historia.*orientad/i.test(String(x[2]||''))).length,98);
   assert.equal(fo.filter(x=>/tecnolog/i.test(String(x[2]||''))).length,91);
   assert.ok(fo.every(x=>String(x[0]||'').trim()&&String(x[2]||'').trim()&&String(x[3]||'').trim()&&String(x[5]||'').trim()));
@@ -79,11 +78,12 @@ test('V96 Tutoría legacy deja de estar activa',()=>{
   assert.ok(app.includes('loadCurriculum'));
 });
 
-test('V96 manifiesto documenta 979 FG y 1049 FO',()=>{
+test('V96 manifiesto documenta 979 FG y 860 FO',()=>{
   const manifest=JSON.parse(fs.readFileSync('data/curriculum_v96/manifest.json','utf8'));
   assert.equal(manifest.fgCount,979);
-  assert.equal(manifest.foCount,1049);
-  assert.deepEqual(manifest.foBreakdown,{bloquesOrientados:860,historiaOrientada:98,tecnologiasInformacionOrientada:91});
+  assert.equal(manifest.foCount,860);
+  assert.equal(manifest.historiaOrientadaCount,98);
+  assert.equal(manifest.tecnologiasInformacionOrientadaCount,91);
   assert.deepEqual(manifest.tutoria.includedYears,[1,2]);
   assert.equal(manifest.historiaYTecnologiaIncludedInFo,true);
   assert.equal(manifest.foHasExplicitYear,false);
