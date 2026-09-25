@@ -3,6 +3,7 @@
   const coverage=()=>window.PCICoverageV91;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pct=result=>result?.percent===null||result?.percent===undefined?null:(Number.isFinite(Number(result.percent))?Number(result.percent):null);
+  const metric=result=>Number(result?.total)?`${Number(result.used||0)}/${Number(result.total)} · ${pct(result)}%`:pct(result)==null?'—':String(pct(result))+'%';
 
   function allPlans(group){
     group.data.v91Plans=Array.isArray(group.data.v91Plans)?group.data.v91Plans:[];
@@ -71,7 +72,7 @@
   function summary(result,title,subtitle=''){
     const value=pct(result);
     return `<div class="v91-summary">
-      <div class="v91-summary-head"><div><span>${esc(title)}</span><strong>${value==null?'—':value+'%'}</strong></div><small>${esc(subtitle||resultMeta(result))}</small></div>
+      <div class="v91-summary-head"><div><span>${esc(title)}</span><strong>${metric(result)}</strong></div><small>${esc(subtitle||resultMeta(result))}</small></div>
       ${progress(result)}
       ${result?.offLevel?`<div class="v91-offlevel">${result.offLevel} contenido${result.offLevel===1?'':'s'} de otro nivel utilizado${result.offLevel===1?'':'s'} · no suma${result.offLevel===1?'':'n'} al porcentaje.</div>`:''}
       ${subjectBars(result)}
@@ -96,7 +97,7 @@
     return `<article class="v91-plan-card" data-v91-plan="${plan.number}">
       <div class="v91-plan-head">
         <div><span>Plan ${plan.number} · Nivel ${group.year}</span><input data-v91-field="name" value="${esc(plan.name)}" ${editable?'':'disabled'}></div>
-        <strong>${value==null?'—':value+'%'}</strong>
+        <strong>${metric(result)}</strong>
       </div>
       <div class="v93-plan-basis">Cobertura del plan respecto del 100% prescripto del nivel.</div>
       <label class="v91-field"><span>Objetivos del plan</span><textarea data-v91-field="objectives" ${editable?'':'disabled'}>${esc(plan.objectives)}</textarea></label>
@@ -109,7 +110,7 @@
 
   function miniMetric(label,result,detail=''){
     const value=pct(result);
-    return `<article class="v93-metric"><span>${esc(label)}</span><strong>${value==null?'—':value+'%'}</strong><small>${esc(detail||resultMeta(result))}</small>${progress(result)}</article>`;
+    return `<article class="v93-metric"><span>${esc(label)}</span><strong>${metric(result)}</strong><small>${esc(detail||resultMeta(result))}</small>${progress(result)}</article>`;
   }
 
   function decorateGroup(card,group){
@@ -143,7 +144,7 @@
         ${miniMetric('Este espacio',space,'Contenidos ubicados en este espacio respecto del mismo 100% del nivel.')}
       </div>
       <div class="v91-format">
-        <div class="v91-title"><div><span>Distribución interna del espacio</span><h4>${esc(formatLabel(group))} · Nivel ${group.year}</h4></div><b>${pct(space)==null?'—':pct(space)+'%'}</b></div>
+        <div class="v91-title"><div><span>Distribución interna del espacio</span><h4>${esc(formatLabel(group))} · Nivel ${group.year}</h4></div><b>${metric(space)}</b></div>
         ${summary(space,'Cobertura del espacio')}
       </div>
       <div class="v91-plans-title"><div><span>Planes del espacio</span><h4>Distribución de los contenidos ya asignados</h4></div><small>${nums.length===4?'Formato anual · Planes 1–4':nums[0]===1?'Primer cuatrimestre · Planes 1 y 2':'Segundo cuatrimestre · Planes 3 y 4'}</small></div>
