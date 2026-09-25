@@ -29,7 +29,29 @@ const st=document.createElement('style');st.textContent=`
 async function unzip(txt){const b=Uint8Array.from(atob(txt.trim()),c=>c.charCodeAt(0)),s=new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(s).text())}
 function stableId(prefix,parts){const s=parts.map(v=>String(v??'')).join('\u241f');let h1=0x811c9dc5,h2=0x9e3779b9;for(let i=0;i<s.length;i++){const n=s.charCodeAt(i);h1=Math.imul(h1^n,0x01000193);h2=Math.imul(h2^(n+i),0x85ebca6b)}return`${prefix}:${(h1>>>0).toString(16).padStart(8,'0')}${(h2>>>0).toString(16).padStart(8,'0')}`}
 async function loadFG(){if(FG)return FG;const parts=await Promise.all(FGFILES.map(async url=>{const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación General');return r.text()}));const raw=await unzip(parts.join(''));FG=raw.map(([id,year,area,subject,axis,subaxis,text])=>({id:String(id||stableId('fgv96',[year,subject,axis,subaxis,text])),component:'FG',year:Number(year)||0,area:String(area||FG_AREA[String(subject||'').trim()]||''),subject:String(subject||'').trim(),axis:String(axis||'').trim(),subaxis:String(subaxis||'').trim(),text:String(text||'').trim()}));if(FG.length!==979)throw Error(`La base de Formación General cargó ${FG.length} contenidos y se esperaban 979.`);return FG}
-async function loadFOAll(){if(FO_ALL)return FO_ALL;const parts=await Promise.all(FOFILES.map(async url=>{const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación Orientada');return r.text()}));const raw=await unzip(parts.join(''));if(raw.length!==1049)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos y se esperaban 1049.`);FO_ALL=raw.map(([orientation,suborientation,block,axis,subaxis,text])=>{orientation=String(orientation||'').trim();suborientation=String(suborientation||'').trim();block=String(block||'').trim();axis=String(axis||'').trim();subaxis=String(subaxis||'').trim();text=String(text||'').trim();const variant=({'Artes Visuales':'artes_visuales','Música':'musica','Teatro':'teatro'})[suborientation]||'',kind=/historia.*orientad|tecnolog/i.test(block)?'Materia':'Bloque';return{id:stableId('fov96',[orientation,suborientation,block,axis,subaxis,text]),component:'FO',area:'Formación Orientada',orientation,suborientation,variant,block,subject:block||'Formación Orientada',axis,subaxis,text,kind}});return FO_ALL}
+async function loadFOAll(){
+  if(FO_ALL)return FO_ALL;
+  const parts=await Promise.all(FOFILES.map(async url=>{
+    const r=await fetch(url,{cache:'force-cache'});
+    if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación Orientada');
+    return r.text();
+  }));
+  const decoded=await unzip(parts.join(''));
+  const raw=decoded.slice(0,860);
+  if(raw.length!==860)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos y se esperaban 860.`);
+  FO_ALL=raw.map(([orientation,suborientation,block,axis,subaxis,text])=>{
+    orientation=String(orientation||'').trim();
+    suborientation=String(suborientation||'').trim();
+    block=String(block||'').trim();
+    axis=String(axis||'').trim();
+    subaxis=String(subaxis||'').trim();
+    text=String(text||'').trim();
+    const variant=({'Artes Visuales':'artes_visuales','Música':'musica','Teatro':'teatro'})[suborientation]||'';
+    const kind=/historia.*orientad|tecnolog/i.test(block)?'Materia':'Bloque';
+    return{id:stableId('fov96',[orientation,suborientation,block,axis,subaxis,text]),component:'FO',area:'Formación Orientada',orientation,suborientation,variant,block,subject:block||'Formación Orientada',axis,subaxis,text,kind};
+  });
+  return FO_ALL;
+}
 const fkey=()=>String(state.active||'');
 async function loadFO(){if(FO.has(fkey()))return FO.get(fkey());const all=await loadFOAll(),m=ORI[state.active]||{},orientation=String(state.active||'').startsWith('Arte - ')?'Arte':String(state.active||'');let rows=all.filter(x=>x.orientation===orientation);if(m.v)rows=rows.filter(x=>x.variant===m.v);FO.set(fkey(),rows);return rows}
 async function loadCurriculum(){await Promise.all([loadFG(),loadFO()]);return{fg:FG||[],fo:oriContents()}}
@@ -44,7 +66,22 @@ function defName(r,slot,y,t){const c=slot.match(/c(\d+)$/)?.[1];if(r.annual)retu
 function mk(r,slot,y,term,a){const t=type(r,slot),d=p2().groups[slot]=p2().groups[slot]||{};d.contents=Array.isArray(d.contents)?d.contents:[];return{id:slot,area:a,type:t,year:y,term,subjectIds:[...(cur().placements[slot]||[])],data:d,name:d.name||defName(r,slot,y,t)}}
 function groups(){const out=[];for(const r of rowDefs()){const a=rowArea(r);if(!a||r.socialConfig||r.otherCreate||r.k==='otrosCreate')continue;if(r.annual){for(let y=1;y<=5;y++)out.push(mk(r,`${r.k}-n${y}`,y,`${y*2-1}-${y*2}`,a));continue}if(r.annualLevel){const y=r.annualLevel;out.push(mk(r,`${r.k}-n${y}`,y,`${y*2-1}-${y*2}`,a));continue}if(/^otherSpace_/.test(r.k)){const id=r.k.replace('otherSpace_',''),g=cur().otherSpaces?.find(x=>x.id===id);if(g){const t=g.year*2-1;out.push(mk(r,`${r.k}-c${t}`,g.year,`${t}-${t+1}`,a))}continue}for(let t=1;t<=10;t++)if(r.a?.(t))out.push(mk(r,`${r.k}-c${t}`,Math.ceil(t/2),String(t),a))}return out}
 const ga=a=>groups().filter(g=>g.area===a),gb=id=>groups().find(g=>g.id===id),members=g=>g.subjectIds.map(byId).filter(Boolean),hasFO=g=>g.area==='Formación Orientada'||members(g).some(s=>s.origin==='FO');
-function allowed(c,g){if(c.component==='CUSTOM')return c.groupId===g.id;if(c.component==='FO')return hasFO(g);if(c.component!=='FG'||c.area!==g.area||Number(c.year)!==Number(g.year))return false;if(g.area==='Otros formatos pedagógicos'){const names=members(g).map(x=>norm(x?.name)).filter(Boolean);if(names.length){const subject=norm(c.subject);const exact=names.some(n=>n===subject||n.includes(subject)||subject.includes(n));if(exact)return true;if(names.some(n=>n==='tutoria'))return subject==='tutoria';if(names.some(n=>n.includes('sexual')))return subject.includes('sexual')}}return true}return true}
+function allowed(c,g){
+  if(c.component==='CUSTOM')return c.groupId===g.id;
+  if(c.component==='FO')return hasFO(g);
+  if(c.component!=='FG'||c.area!==g.area||Number(c.year)!==Number(g.year))return false;
+  if(g.area==='Otros formatos pedagógicos'){
+    const names=members(g).map(x=>norm(x?.name)).filter(Boolean);
+    if(names.length){
+      const subject=norm(c.subject);
+      const exact=names.some(n=>n===subject||n.includes(subject)||subject.includes(n));
+      if(exact)return true;
+      if(names.some(n=>n==='tutoria'))return subject==='tutoria';
+      if(names.some(n=>n.includes('sexual')))return subject.includes('sexual');
+    }
+  }
+  return true;
+}
 const oriContents=()=>FO.get(fkey())||[],customContents=()=>p2().customContents||[],findContent=id=>[...(FG||[]),...oriContents(),...customContents()].find(c=>c.id===id),locations=id=>groups().filter(g=>(g.data.contents||[]).includes(id)).map(g=>g.data.name||g.name),developed=g=>!!((g.data.contents||[]).length||String(g.data.objectives||'').trim()||String(g.data.context||'').trim()||String(g.data.practice||'').trim()||String(g.data.synopsis||'').trim()),termText=g=>String(g.term||'').includes('-')?`C${g.term.split('-')[0]}–C${g.term.split('-')[1]} · anual`:`C${g.term}`;
 function pool(a){const gs=ga(a),hasFoSpace=gs.some(hasFO);return[...(FG||[]),...oriContents()].filter(c=>c.component==='FO'?hasFoSpace:c.component==='FG'&&c.area===a)}
 function areaPool(a){const rows=pool(a);return[...new Map(rows.map(c=>[c.id,c])).values()]}
