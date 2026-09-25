@@ -5,6 +5,7 @@
   const coverage=()=>window.PCICoverageV91;
   const typeLabel=t=>({troncal:'Troncal',laboratorio:'Laboratorios',taller:'Talleres',proyecto:'Proyecto',seminario:'Seminarios',asignatura:'Asignaturas'})[t]||'Formato';
   const pct=r=>r?.percent===null||r?.percent===undefined?null:(Number.isFinite(Number(r.percent))?Number(r.percent):null);
+  const metric=r=>Number(r?.total)?`${Number(r.used||0)}/${Number(r.total)} · ${pct(r)}%`:pct(r)==null?'—':String(pct(r))+'%';
 
   function visibleGroups(){
     const p=phase();if(!p?.groups)return[];
@@ -18,7 +19,7 @@
 
   function metric(label,result,detail=''){
     const value=pct(result);
-    return `<article class="v93d-metric"><span>${esc(label)}</span><strong>${value==null?'—':value+'%'}</strong><small>${esc(detail)}</small>${value==null?'':`<div class="v93d-bar"><i style="width:${Math.min(100,value)}%"></i></div>`}</article>`;
+    return `<article class="v93d-metric"><span>${esc(label)}</span><strong>${metric(result)}</strong><small>${esc(detail)}</small>${value==null?'':`<div class="v93d-bar"><i style="width:${Math.min(100,value)}%"></i></div>`}</article>`;
   }
 
   function subjectRows(result){
@@ -41,10 +42,10 @@
       const result=coverage()?.formatTypeCoverage?.(sample,allGroups)||{};
       const spaces=levelGroups.filter(g=>g.type===type);
       return `<section class="v93d-format">
-        <div class="v93d-format-head"><div><span>${esc(typeLabel(type))}</span><small>${spaces.length} espacio${spaces.length===1?'':'s'}</small></div><strong>${pct(result)==null?'—':pct(result)+'%'}</strong></div>
+        <div class="v93d-format-head"><div><span>${esc(typeLabel(type))}</span><small>${spaces.length} espacio${spaces.length===1?'':'s'}</small></div><strong>${metric(result)}</strong></div>
         <div class="v93d-space-list">${spaces.map(g=>{
           const r=coverage()?.formatCoverage?.(g)||{};
-          return `<div><span>${esc(groupName(g))}</span><strong>${pct(r)==null?'—':pct(r)+'%'}</strong></div>`;
+          return `<div><span>${esc(groupName(g))}</span><strong>${metric(r)}</strong></div>`;
         }).join('')}</div>
       </section>`;
     }).join('');
@@ -60,7 +61,7 @@
       ?'La fuente orientada todavía no permite fijar un 100% específico para este nivel.'
       :`Unión de todos los espacios de ${year}.º respecto del 100% prescripto del nivel.`;
     return `<article class="v93d-level">
-      <header class="v93d-level-head"><div><span>Nivel ${year}</span><h4>${esc(area)}</h4><p>${esc(basis)}</p></div><strong>${value==null?'—':value+'%'}</strong></header>
+      <header class="v93d-level-head"><div><span>Nivel ${year}</span><h4>${esc(area)}</h4><p>${esc(basis)}</p></div><strong>${metric(result)}</strong></header>
       ${value==null?'':`<div class="v93d-bar large"><i style="width:${Math.min(100,value)}%"></i></div>`}
       ${subjectRows(result)}
       ${componentRows(result)}
@@ -73,7 +74,7 @@
     const trajectory=coverage()?.trajectoryCoverage?.(area,allGroups)||{};
     const levels=[1,2,3,4,5].filter(y=>groups.some(g=>Number(g.year)===y));
     return `<section class="v93d-area">
-      <header class="v93d-area-head"><div><span>Agrupamiento · trayectoria</span><h3>${esc(area)}</h3><p>Unión de contenidos utilizados en toda la trayectoria disponible.</p></div><strong>${pct(trajectory)==null?'—':pct(trajectory)+'%'}</strong></header>
+      <header class="v93d-area-head"><div><span>Agrupamiento · trayectoria</span><h3>${esc(area)}</h3><p>Unión de contenidos utilizados en toda la trayectoria disponible.</p></div><strong>${metric(trajectory)}</strong></header>
       ${pct(trajectory)==null?'':`<div class="v93d-bar large"><i style="width:${Math.min(100,pct(trajectory))}%"></i></div>`}
       ${subjectRows(trajectory)}
       ${componentRows(trajectory)}
