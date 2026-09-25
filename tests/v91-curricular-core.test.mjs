@@ -23,13 +23,16 @@ test('V91 mantiene la base curricular y de gestion sin reactivar modulos retirad
   assert.equal(management.includes("key:'equipos'"),false);
 });
 
-test('V91 base de cobertura tiene año prescripto explicito',()=>{
-  const data=JSON.parse(fs.readFileSync('data/contenidos-prescriptos-fg.json','utf8'));
-  assert.ok(Array.isArray(data.rows));
-  assert.ok(data.rows.length>1000);
-  assert.ok(data.rows.every(x=>Number(x.year)>=1&&Number(x.year)<=5));
-  assert.ok(data.rows.every(x=>x.id&&x.subject&&x.text));
-  assert.deepEqual([...new Set(data.rows.map(x=>x.year))].sort(),[1,2,3,4,5]);
+test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=>{
+  const zlib=require('node:zlib');
+  const encoded=fs.readFileSync('data/curriculum_v96/fg_all.txt','utf8').trim();
+  const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
+  assert.equal(rows.length,979);
+  assert.ok(rows.every(x=>Number(x[0])>=1&&Number(x[0])<=5&&x[1]&&x[4]));
+  assert.deepEqual([...new Set(rows.map(x=>Number(x[0])))].sort(),[1,2,3,4,5]);
+  const tutor=rows.filter(x=>x[1]==='Tutoría');
+  assert.equal(tutor.length,19);
+  assert.deepEqual([...new Set(tutor.map(x=>Number(x[0])))].sort(),[1,2]);
 });
 
 test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
