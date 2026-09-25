@@ -30,6 +30,8 @@ async function harness(){
   const window={
     addEventListener(){},
     PCIPhase2V28:{
+      async loadCurriculum(){return{fg:data.rows,fo:[]}},
+      getFGCatalog(){return data.rows},
       findContent(id){return contents[id]||null},
       members(){return[]},
       getAreaPool(){return[]}

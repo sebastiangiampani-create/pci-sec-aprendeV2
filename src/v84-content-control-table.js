@@ -1,5 +1,5 @@
 (()=>{
-  const CONTROL_VERSION='20260922-content-control-r47';
+  const CONTROL_VERSION='20260925-content-control-v96';
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -80,7 +80,7 @@
     return `C${t}`;
   }
   function groupName(g){return String(g?.data?.name||g?.name||'Espacio curricular')}
-  function sourceAreaFor(row){return row.component==='FO'?'Formación Orientada':row.area==='Tutoría'?'Otros formatos pedagógicos':String(row.area||'')}
+  function sourceAreaFor(row){return row.component==='FO'?'Formación Orientada':String(row.area||'')}
   function hasFO(g){return g?.area==='Formación Orientada'||(api()?.members?.(g)||[]).some(s=>s?.origin==='FO')}
 
   function visibleArea(area,groupsForContent=[]){
@@ -95,8 +95,9 @@
     const phase=api();
     if(!phase?.groups)throw new Error('Desarrollo Curricular todavía no está disponible.');
     const groups=phase.groups()||[];
-    const [fg,fo]=await Promise.all([loadFG(),loadFO()]);
-    const official=[...fg,...fo];
+    if(!phase.loadCurriculum)throw new Error('La nueva base curricular V96 todavía no está disponible.');
+    await phase.loadCurriculum();
+    const official=[...(phase.getFGCatalog?.()||[]),...(phase.getFOCatalog?.()||[])];
     const byId=new Map(official.map(x=>[String(x.id),x]));
 
     const locations=new Map();
@@ -123,8 +124,7 @@
 
       // Los contenidos oficiales solo se muestran cuando son utilizables en la estructura actual.
       if(row.component==='FG'){
-        const wanted=row.area==='Tutoría'?'Otros formatos pedagógicos':row.area;
-        if(!groups.some(g=>g.area===wanted))continue;
+        if(!groups.some(g=>g.area===row.area))continue;
       }
       if(row.component==='FO'&&!groups.some(g=>hasFO(g)))continue;
 
@@ -133,8 +133,11 @@
         id:String(row.id),
         component:row.component||'',
         area,
+        year:Number(row.year)||0,
+        level:row.component==='FG'&&Number(row.year)?String(Number(row.year))+'.º':'Trayectoria orientada',
         subject:String(row.subject||''),
         axis:String(row.axis||''),
+        subaxis:String(row.subaxis||''),
         text:String(row.text||''),
         locations:uniqueLocs.map(g=>({
           id:g.id,
@@ -245,7 +248,7 @@
       if(area&&row.area!==area)return false;
       if(subject&&row.subject!==subject)return false;
       if(q){
-        const hay=norm([row.area,row.subject,row.axis,row.text,...row.locations.flatMap(x=>[x.area,x.name,x.term])].join(' '));
+        const hay=norm([row.level,row.year,row.area,row.subject,row.axis,row.subaxis,row.text,...row.locations.flatMap(x=>[x.area,x.name,x.term])].join(' '));
         if(!hay.includes(q))return false;
       }
       return true;

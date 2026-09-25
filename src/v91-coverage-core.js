@@ -1,5 +1,4 @@
 (() => {
-  const DATA_URL='data/contenidos-prescriptos-fg.json';
   let rows=null,loading=null;
 
   const norm=v=>String(v??'')
@@ -20,11 +19,12 @@
   async function load(){
     if(rows)return rows;
     if(loading)return loading;
-    loading=fetch(DATA_URL,{cache:'no-store'}).then(r=>{
-      if(!r.ok)throw new Error('No se pudo cargar la base de contenidos prescriptos por año.');
-      return r.json();
-    }).then(data=>{
-      rows=(Array.isArray(data)?data:data.rows||[]).map(x=>({
+    loading=(async()=>{
+      const p=phase();
+      if(!p?.loadCurriculum)throw new Error('No está disponible la nueva base curricular V96.');
+      await p.loadCurriculum();
+      const data=p.getFGCatalog?.()||[];
+      rows=data.map(x=>({
         ...x,
         year:Number(x.year)||0,
         _area:areaKey(x.area),
@@ -32,7 +32,7 @@
         _text:norm(x.text)
       }));
       return rows;
-    }).finally(()=>{loading=null});
+    })().finally(()=>{loading=null});
     return loading;
   }
 
@@ -71,6 +71,8 @@
 
   function canonicalForContent(content,year=null){
     if(!rows||!content||content.component!=='FG')return[];
+    const direct=rows.find(x=>String(x.id)===String(content.id));
+    if(direct&&(!year||direct.year===Number(year)))return[direct];
     const subset=rows.filter(x=>(!year||x.year===Number(year))&&subjectKey(content.subject)===x._subject);
     return subset.filter(x=>matchesContent(content,x));
   }
