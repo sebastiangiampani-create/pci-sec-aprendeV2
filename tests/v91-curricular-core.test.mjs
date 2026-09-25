@@ -29,11 +29,11 @@ test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=
   const encoded=files.map(x=>fs.readFileSync(x,'utf8').trim()).join('');
   const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
   assert.equal(rows.length,979);
-  assert.ok(rows.every(x=>Number(x[1])>=1&&Number(x[1])<=5&&x[3]&&x[6]));
-  assert.deepEqual([...new Set(rows.map(x=>Number(x[1])))].sort(),[1,2,3,4,5]);
-  const tutor=rows.filter(x=>x[3]==='Tutoría');
+  assert.ok(rows.every(x=>Number(x.year)>=1&&Number(x.year)<=5&&x.subject&&x.text));
+  assert.deepEqual([...new Set(rows.map(x=>Number(x.year)))].sort(),[1,2,3,4,5]);
+  const tutor=rows.filter(x=>x.subject==='Tutoría');
   assert.equal(tutor.length,19);
-  assert.deepEqual([...new Set(tutor.map(x=>Number(x[1])))].sort(),[1,2]);
+  assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
 });
 
 test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
