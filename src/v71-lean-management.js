@@ -2,12 +2,15 @@
   const $=id=>document.getElementById(id);
   let rendering=false,entryObserver=null,selectedCourseKey='',hoursReady=false,hoursLoading=null;
   const CARGOS={TC:36,TP1:30,TP2:24,TP3:18,TP4:12};
+  const COORD_AREAS=['Lengua y Literatura','Matemática','Lenguas Adicionales','Ciencias Naturales','Ciencias Sociales','Artes','Tecnologías','Educación Física'];
+  const SHIFTS=['Sin especificar','Mañana','Tarde','Vespertino','Jornada completa'];
 
   function root(){
     state.institutional=state.institutional||{};
     const r=state.institutional;
     r.teachers=r.teachers||{};
     r.assignments=r.assignments||{};
+    r.coordinations=Array.isArray(r.coordinations)?r.coordinations:[];
     return r;
   }
   const teachers=()=>Object.values(root().teachers).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es'));
@@ -67,6 +70,7 @@
     if(!confirm(`Eliminar a ${t.name}?${count?` También se liberarán ${count} asignaciones.`:''}`))return;
     delete r.teachers[tid];
     for(const [instanceId,id] of Object.entries(r.assignments))if(id===tid)delete r.assignments[instanceId];
+    r.coordinations=(r.coordinations||[]).filter(x=>String(x.teacherId)!==String(tid));
     if(r.teacherProfiles)delete r.teacherProfiles[tid];
     if(r.availability)delete r.availability[tid];
     if(r.availabilityPreferences)delete r.availabilityPreferences[tid];
@@ -204,6 +208,79 @@
     render();
   }
 
+  function coordinationList(){
+    const r=root();
+    return [...(r.coordinations||[])].sort((a,b)=>{
+      const ak=String(a.kind||'').localeCompare(String(b.kind||''),'es');
+      if(ak)return ak;
+      const as=String(a.scope||'').localeCompare(String(b.scope||''),'es');
+      if(as)return as;
+      return String(a.shift||'').localeCompare(String(b.shift||''),'es');
+    });
+  }
+
+  function teacherOptionRows(){
+    const list=teachers();
+    return list.length
+      ? '<option value="">Seleccionar docente</option>'+list.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('')
+      : '<option value="">Todavía no hay docentes cargados</option>';
+  }
+
+  function coordinationSectionHtml(){
+    const list=teachers(),coords=coordinationList(),orientations=[...new Set((state.selected||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+    const teacherOptions=teacherOptionRows();
+    const shifts=SHIFTS.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+    const rows=coords.map(x=>{
+      const t=root().teachers?.[x.teacherId];
+      const kind=x.kind==='orientation'?'Orientación':'Área';
+      return `<article class="v95-coord-row">
+        <div><small>${esc(kind)} · ${esc(x.shift||'Sin especificar')}</small><strong>${esc(x.scope||'')}</strong><span>${esc(t?.name||'Docente no disponible')}</span></div>
+        <button type="button" data-v95-coord-remove="${esc(x.id)}" aria-label="Quitar coordinación">×</button>
+      </article>`;
+    }).join('');
+    return `<section class="card v48-section v95-coordination">
+      <div class="eyebrow">Coordinaciones</div>
+      <h2>Áreas y orientaciones</h2>
+      <p>Podés asignar más de un coordinador al mismo ámbito y diferenciarlos por turno. Un mismo docente puede tener varias coordinaciones.</p>
+      <div class="v95-coord-forms">
+        <div class="v95-coord-form">
+          <strong>Coordinación de área</strong>
+          <select id="v95CoordAreaTeacher">${teacherOptions}</select>
+          <select id="v95CoordAreaScope">${COORD_AREAS.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select>
+          <select id="v95CoordAreaShift">${shifts}</select>
+          <button type="button" class="btn primary" data-v95-add-area ${list.length?'':'disabled'}>Agregar</button>
+        </div>
+        <div class="v95-coord-form">
+          <strong>Coordinación de orientación</strong>
+          <select id="v95CoordOrientationTeacher">${teacherOptions}</select>
+          <select id="v95CoordOrientationScope">${orientations.length?orientations.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(''):'<option value="">Sin orientaciones configuradas</option>'}</select>
+          <select id="v95CoordOrientationShift">${shifts}</select>
+          <button type="button" class="btn primary" data-v95-add-orientation ${list.length&&orientations.length?'':'disabled'}>Agregar</button>
+        </div>
+      </div>
+      <div class="v95-coord-list">${rows||'<div class="v71m-empty">Todavía no hay coordinaciones asignadas.</div>'}</div>
+    </section>`;
+  }
+
+  function addCoordination(kind){
+    const isArea=kind==='area';
+    const teacherId=$(isArea?'v95CoordAreaTeacher':'v95CoordOrientationTeacher')?.value||'';
+    const scope=$(isArea?'v95CoordAreaScope':'v95CoordOrientationScope')?.value||'';
+    const shift=$(isArea?'v95CoordAreaShift':'v95CoordOrientationShift')?.value||'Sin especificar';
+    if(!teacherId||!scope)return toast('Elegí docente y ámbito de coordinación.',true);
+    const r=root();
+    const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===String(teacherId)&&x.kind===kind&&String(x.scope)===String(scope)&&String(x.shift||'Sin especificar')===String(shift));
+    if(duplicate)return toast('Esa coordinación ya está asignada con el mismo turno.',true);
+    r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId,kind,scope,shift});
+    save();render();toast('Coordinación asignada.');
+  }
+
+  function removeCoordination(id){
+    const r=root();
+    r.coordinations=(r.coordinations||[]).filter(x=>String(x.id)!==String(id));
+    save();render();toast('Coordinación quitada.');
+  }
+
   function bindDrag(host){
     host.querySelectorAll('[data-v71m-teacher-drag]').forEach(el=>{
       el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',`teacher:${el.dataset.v71mTeacherDrag}`);e.dataTransfer.effectAllowed='move'});
@@ -271,6 +348,7 @@
           ${teacherHtml()}
         </section>
         ${assignmentSectionHtml()}
+        ${coordinationSectionHtml()}
         <div id="v71mDynamic"></div>`;
       $('v71LeanCargoType')?.addEventListener('change',e=>{const x=$('v71LeanManualHours');if(x)x.style.display=e.target.value==='POR_HORAS'?'block':'none'});
       $('v71LeanAddTeacher')?.addEventListener('click',addTeacher);
@@ -280,6 +358,9 @@
       host.querySelectorAll('[data-v71m-add-cargo]').forEach(b=>b.addEventListener('click',()=>addCargo(b.dataset.v71mAddCargo)));
       host.querySelectorAll('[data-v71m-cargo-remove]').forEach(b=>b.addEventListener('click',()=>removeCargo(b.dataset.teacher,b.dataset.v71mCargoRemove)));
       $('v71oCourseSelect')?.addEventListener('change',e=>{selectedCourseKey=e.target.value;render()});
+      host.querySelector('[data-v95-add-area]')?.addEventListener('click',()=>addCoordination('area'));
+      host.querySelector('[data-v95-add-orientation]')?.addEventListener('click',()=>addCoordination('orientation'));
+      host.querySelectorAll('[data-v95-coord-remove]').forEach(b=>b.addEventListener('click',()=>removeCoordination(b.dataset.v95CoordRemove)));
       bindDrag(host);bindTouchAssign(host);
       setTimeout(()=>{
         try{window.PCISimpleAssignmentExcelV71?.render?.()}catch(e){console.warn('V71P excel',e)}
@@ -336,12 +417,13 @@
     .v71m-teachers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-top:10px}.v71m-teacher{position:relative;padding:10px 42px 10px 10px;border:1px solid var(--line);border-radius:12px;background:var(--band);cursor:grab}.v71m-teacher.picked{outline:3px solid var(--mint)}.v71m-teacher.over{border-color:#e0bdc5;background:var(--danger-soft)}.v71m-teacher strong{display:block;font-size:.72rem}.v71m-teacher small{display:block;margin-top:2px;font-size:.52rem;color:var(--muted)}.v71m-teacher>button{position:absolute;right:8px;top:8px;width:28px;height:28px;border:1px solid #ddb7bf;border-radius:50%;background:#fff5f6;color:var(--danger);font-size:1rem;font-weight:900}.v71m-cargo-stack{display:grid;gap:6px;margin-top:8px}.v71m-cargo-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fff}.v71m-cargo-line label,.v71m-meeting{display:flex;align-items:center;gap:4px;font-size:.52rem;font-weight:800}.v71m-cargo-line select,.v71m-cargo-line input,.v71m-meeting input{width:auto;max-width:110px;padding:5px;border:1px solid var(--line);border-radius:7px;background:#fff}.v71m-cargo-hc{font-size:.52rem;font-weight:900;color:var(--mint-dark)}.v71m-add-cargo{justify-self:start;border:1px dashed var(--mint-dark);border-radius:999px;background:var(--mint-soft);color:var(--mint-dark);padding:6px 9px;font-size:.54rem;font-weight:900}.v71m-cargo-remove{width:24px!important;height:24px!important;position:static!important;border-radius:50%!important}.v71m-cap{font-size:.5rem!important}.v71m-hours{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px}.v71m-hours span{padding:5px;border-radius:8px;background:#fff;font-size:.5rem;text-align:center}.v71m-hours b{display:block;font-size:.68rem}.v71m-hours .bad{background:var(--danger-soft);color:var(--danger)}
     .v71m-empty{padding:12px;border:1px dashed var(--line);border-radius:10px;margin-top:10px;color:var(--muted);font-size:.62rem}
     .v71o-course-label{display:grid;gap:5px;margin-top:10px;max-width:420px;font-size:.6rem;font-weight:850}.v71o-course-label select{padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}.v71o-subject-list{display:grid;gap:7px;margin-top:10px}.v71o-subject-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--band)}.v71o-subject-row.dragover{outline:3px solid var(--mint)}.v71o-subject-row strong{display:block;font-size:.68rem}.v71o-subject-row small{display:block;margin-top:2px;font-size:.52rem;color:var(--muted)}.v71o-dropzone{min-height:42px;border:1.5px dashed #9dafbb;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:7px;padding:7px;color:var(--muted);font-size:.58rem;font-weight:800}.v71o-dropzone span{color:var(--ink);cursor:grab}.v71o-dropzone button{width:25px;height:25px;border:0;border-radius:50%;background:var(--danger-soft);color:var(--danger);font-weight:900}
+    .v95-coordination h2{margin:3px 0 4px!important}.v95-coord-forms{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.v95-coord-form{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1fr) minmax(120px,.7fr) auto;gap:7px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--band)}.v95-coord-form>strong{grid-column:1/-1;font-size:.64rem}.v95-coord-form select{min-width:0;padding:8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.v95-coord-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.v95-coord-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}.v95-coord-row small,.v95-coord-row strong,.v95-coord-row span{display:block}.v95-coord-row small{color:var(--mint-dark);font-size:.48rem;font-weight:900;text-transform:uppercase}.v95-coord-row strong{margin-top:2px;font-size:.65rem}.v95-coord-row span{margin-top:2px;color:var(--muted);font-size:.54rem}.v95-coord-row button{width:26px;height:26px;border:0;border-radius:50%;background:var(--danger-soft);color:var(--danger);font-weight:900}
     .v66-assignment-section,.v48-table-wrap{display:none!important}
     .v71n-entry-card{margin-top:16px;padding:18px;display:flex;justify-content:space-between;gap:16px;align-items:center;border-color:#9edfd7;background:linear-gradient(135deg,#f7fffd,#edf8f7)}.v71n-entry-card h2{margin:4px 0}.v71n-entry-card p{margin:0;color:var(--muted);font-size:.72rem}.v71n-entry-card small{display:block;margin-top:7px;color:var(--muted);font-size:.58rem}.v71n-entry-card>.btn{flex:0 0 auto}
-    @media(max-width:900px){.v71m-add{grid-template-columns:1fr 1fr}.v71m-add .btn{grid-column:1/-1}.v71m-hours{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:780px){.v71m-add{grid-template-columns:1fr}.v71m-add .btn{width:100%;grid-column:auto}.v71m-teachers{grid-template-columns:1fr}.v71o-subject-row{grid-template-columns:1fr}.v71n-entry-card{align-items:stretch;flex-direction:column}.v71n-entry-card>.btn{width:100%}}
+    @media(max-width:900px){.v71m-add{grid-template-columns:1fr 1fr}.v71m-add .btn{grid-column:1/-1}.v71m-hours{grid-template-columns:repeat(2,1fr)}.v95-coord-forms{grid-template-columns:1fr}.v95-coord-form{grid-template-columns:1fr 1fr}}
+    @media(max-width:780px){.v71m-add{grid-template-columns:1fr}.v71m-add .btn{width:100%;grid-column:auto}.v71m-teachers{grid-template-columns:1fr}.v71o-subject-row{grid-template-columns:1fr}.v71n-entry-card{align-items:stretch;flex-direction:column}.v71n-entry-card>.btn{width:100%}.v95-coord-form{grid-template-columns:1fr}.v95-coord-list{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
-  window.PCILeanManagementV71={render,deleteTeacher,addTeacher,ensureEntryButtons,openManagement,setAssignment,ensureHours,stats};
+  window.PCILeanManagementV71={render,deleteTeacher,addTeacher,ensureEntryButtons,openManagement,setAssignment,ensureHours,stats,coordinationList,addCoordination,removeCoordination};
 })();
