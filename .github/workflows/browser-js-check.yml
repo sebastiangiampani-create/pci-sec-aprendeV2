@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/v95-coordinations-subtle-plan-detail
   pull_request:
   workflow_dispatch:
 
