@@ -43,10 +43,10 @@
       .v38-field input,.v38-field textarea{width:100%;padding:10px 11px;border:1px solid #d8e1e8;border-radius:10px;font:inherit;color:#12395c;background:#fff}.v38-field textarea{min-height:88px;resize:vertical}.v38-field textarea.activities{min-height:165px}
       .v38-stage{border:1px solid #d8e1e8;border-radius:12px;overflow:hidden}.v38-stage summary{padding:12px 14px;background:#f1f8f7;font-weight:900;cursor:pointer}.v38-stage-body{display:grid;gap:10px;padding:13px}
       .v38-note{padding:10px 12px;border-radius:10px;background:#f5f8fa;color:#5f7382;font-size:.77rem;line-height:1.4}.v38-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-      .v38-top-actions{display:flex;align-items:flex-start;gap:10px}.v94-plan-title h3{margin:7px 0 2px!important}.v94-plan-title p{margin:0;color:#5f7382;font-size:.8rem}.v94-coverage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.v94-coverage.compact{grid-template-columns:repeat(2,minmax(0,1fr))}.v94-metric{padding:8px 9px;border:1px solid #d8e1e8;border-radius:11px;background:#f9fbfc}.v94-metric.primary{background:#edf7f5;border-color:#cbe6df}.v94-metric span{display:block;color:#5f7382;font-size:.5rem;font-weight:850}.v94-metric strong{display:block;margin-top:3px;color:#12395c;font-size:.78rem}.v94-subjects{grid-column:1/-1;display:grid;gap:6px}.v94-subject{padding:8px;border:1px solid #e0e7eb;border-radius:10px;background:#fff}.v94-subject-head small,.v94-subject-head strong{display:block}.v94-subject-head small{color:#126e65;font-size:.46rem;text-transform:uppercase;font-weight:900}.v94-subject-head strong{margin-top:1px;font-size:.62rem}.v94-subject-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:5px}.v94-subject-metrics span{padding:5px 6px;border-radius:8px;background:#f5f8fa}.v94-subject-metrics small,.v94-subject-metrics b{display:block}.v94-subject-metrics small{color:#5f7382;font-size:.44rem}.v94-subject-metrics b{margin-top:1px;font-size:.54rem;color:#12395c}.v94-axis-list{display:grid;gap:3px;margin-top:6px;padding-left:7px;border-left:2px solid #d7e8e4}.v94-axis-list div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;font-size:.46rem}.v94-axis-list em{grid-column:1/-1;color:#5f7382;font-style:normal}.v94-plan-actions{margin-top:10px!important}.v94-editor-coverage>h3{margin-bottom:8px!important}
+      .v38-top-actions{display:flex;align-items:flex-start;gap:10px}.v94-plan-title h3{margin:7px 0 2px!important}.v94-plan-title p{margin:0;color:#5f7382;font-size:.8rem}.v94-coverage{display:block;margin-top:10px}.v95-plan-kpis{display:flex;gap:14px;flex-wrap:wrap;padding:7px 0 8px;border-top:1px solid #e5ebee;border-bottom:1px solid #e5ebee}.v95-plan-kpis span{display:flex;align-items:baseline;gap:6px}.v95-plan-kpis small{color:#5f7382;font-size:.48rem;font-weight:800}.v95-plan-kpis strong{color:#12395c;font-size:.7rem}.v95-coverage-table{margin-top:7px}.v95-coverage-head,.v95-coverage-line{display:grid;grid-template-columns:minmax(150px,1.5fr) minmax(100px,.8fr) minmax(110px,.9fr);gap:8px;align-items:center}.v95-coverage-head{padding:0 2px 4px;color:#7a8d99;font-size:.43rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em}.v95-coverage-line{padding:6px 2px;border-top:1px solid #edf1f3}.v95-coverage-line:first-of-type{border-top:0}.v95-coverage-line>div small,.v95-coverage-line>div strong,.v95-coverage-line>div span{display:block}.v95-coverage-line>div small{color:#126e65;font-size:.42rem;font-weight:900;text-transform:uppercase}.v95-coverage-line>div strong{margin-top:1px;font-size:.58rem}.v95-coverage-line>div span{font-size:.52rem;color:#5f7382}.v95-coverage-line>b{font-size:.52rem;color:#365d78;font-weight:850}.v95-coverage-line.axis{padding-left:12px;background:linear-gradient(90deg,#f8fbfb,transparent)}.v95-coverage-line.axis>div small{color:#7a8d99}.v94-plan-actions{margin-top:9px!important}.v94-editor-coverage>h3{margin-bottom:5px!important}
       .v38-pick-group{display:grid;gap:7px}.v38-pick-title{margin:8px 0 2px;color:#12395c;font-size:.73rem;font-weight:900}.v38-pick{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:9px;border:1px solid #d8e1e8;border-radius:10px}.v38-pick small{display:block;margin-bottom:3px;color:#5f7382}.v38-pick p{margin:0;line-height:1.35}
-      @media(max-width:760px){.v38-modal{padding:0;align-items:end}.v38-shell{width:100%;max-height:96dvh;border-radius:18px 18px 0 0;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}.v38-grid,.v38-fields{grid-template-columns:1fr}.v38-field.full{grid-column:auto}.v38-body{padding:12px}.v38-top{padding:11px 12px;align-items:center}.v38-top-actions{min-width:0;align-items:center}.v38-top-actions>div{min-width:0}.v38-top h2{font-size:1rem;overflow:hidden;text-overflow:ellipsis}.v38-own-head{align-items:flex-start;flex-direction:column}.v38-card{padding:12px}.v94-coverage.compact{grid-template-columns:1fr 1fr}.v94-subject-metrics{grid-template-columns:1fr 1fr}.v38-actions button{min-height:42px}.v94-plan-actions{display:grid;grid-template-columns:1fr 1fr}.v94-plan-actions button{width:100%}.v38-footer{padding-bottom:8px}.v38-top>[data-close]{flex:0 0 auto}}
-      @media(max-width:430px){.v94-coverage.compact{grid-template-columns:1fr}.v94-subject-metrics{grid-template-columns:1fr 1fr}.v38-top-actions>[data-back],.v38-top-actions>[data-back-space]{padding:7px 9px!important;font-size:.6rem!important}.v38-status{font-size:.6rem}}
+      @media(max-width:760px){.v38-modal{padding:0;align-items:end}.v38-shell{width:100%;max-height:96dvh;border-radius:18px 18px 0 0;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}.v38-grid,.v38-fields{grid-template-columns:1fr}.v38-field.full{grid-column:auto}.v38-body{padding:12px}.v38-top{padding:11px 12px;align-items:center}.v38-top-actions{min-width:0;align-items:center}.v38-top-actions>div{min-width:0}.v38-top h2{font-size:1rem;overflow:hidden;text-overflow:ellipsis}.v38-own-head{align-items:flex-start;flex-direction:column}.v38-card{padding:12px}.v95-coverage-head,.v95-coverage-line{grid-template-columns:minmax(115px,1.3fr) minmax(90px,.8fr) minmax(95px,.9fr)}.v38-actions button{min-height:42px}.v94-plan-actions{display:grid;grid-template-columns:1fr 1fr}.v94-plan-actions button{width:100%}.v38-footer{padding-bottom:8px}.v38-top>[data-close]{flex:0 0 auto}}
+      @media(max-width:430px){.v95-plan-kpis{gap:7px;display:grid;grid-template-columns:1fr}.v95-coverage-head,.v95-coverage-line{grid-template-columns:minmax(100px,1.1fr) minmax(82px,.85fr) minmax(86px,.9fr);gap:5px}.v95-coverage-head{font-size:.38rem}.v95-coverage-line>b{font-size:.47rem}.v38-top-actions>[data-back],.v38-top-actions>[data-back-space]{padding:7px 9px!important;font-size:.6rem!important}.v38-status{font-size:.6rem}}
     `; document.head.appendChild(s);
   }
 
@@ -140,22 +140,26 @@
     const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
     const rows=r.bySubject.length?r.bySubject:r.byComponent;
     if(!rows.length)return'';
-    return `<div class="v94-subjects">${rows.map(x=>`
-      <section class="v94-subject">
-        <div class="v94-subject-head"><div><small>${esc(x.kind)}</small><strong>${esc(x.label)}</strong></div></div>
-        <div class="v94-subject-metrics">
-          <span><small>${esc(r.levelLabel)}</small><b>${metric(x.levelUsed,x.levelTotal)}</b></span>
-          ${dual?`<span><small>Dentro del espacio</small><b>${metric(x.levelUsed,x.spaceTotal)}</b></span>`:''}
+    return `<div class="v95-coverage-table">
+      <div class="v95-coverage-head"><span>Materia / componente</span><span>${esc(r.levelLabel)}</span>${dual?'<span>Dentro del espacio</span>':''}</div>
+      ${rows.map(x=>`
+        <div class="v95-coverage-line">
+          <div><small>${esc(x.kind)}</small><strong>${esc(x.label)}</strong></div>
+          <b>${metric(x.levelUsed,x.levelTotal)}</b>
+          ${dual?`<b>${metric(x.levelUsed,x.spaceTotal)}</b>`:''}
         </div>
-        ${(x.axes||[]).length?`<div class="v94-axis-list">${x.axes.map(a=>`<div><span>${esc(a.label)}</span><b>${metric(a.levelUsed,a.levelTotal)}</b>${dual?`<em>${metric(a.levelUsed,a.spaceTotal)} del espacio</em>`:''}</div>`).join('')}</div>`:''}
-      </section>`).join('')}</div>`;
+        ${(x.axes||[]).map(a=>`<div class="v95-coverage-line axis"><div><small>Eje</small><span>${esc(a.label)}</span></div><b>${metric(a.levelUsed,a.levelTotal)}</b>${dual?`<b>${metric(a.levelUsed,a.spaceTotal)}</b>`:''}</div>`).join('')}
+      `).join('')}
+    </div>`;
   }
 
   function planCoverageSummary(g,p,compact=false){
     const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
     return `<div class="v94-coverage ${compact?'compact':''}">
-      <div class="v94-metric primary"><span>Aporte al ${esc(r.levelLabel.toLowerCase())}</span><strong>${metric(r.levelUsed,r.levelTotal)}</strong></div>
-      ${dual?`<div class="v94-metric"><span>Dentro del ${g.type==='taller'?'taller':'laboratorio'}</span><strong>${metric(r.levelUsed,r.spaceUsed)}</strong></div>`:''}
+      <div class="v95-plan-kpis">
+        <span><small>Aporte al ${esc(r.levelLabel.toLowerCase())}</small><strong>${metric(r.levelUsed,r.levelTotal)}</strong></span>
+        ${dual?`<span><small>Dentro del ${g.type==='taller'?'taller':'laboratorio'}</small><strong>${metric(r.levelUsed,r.spaceUsed)}</strong></span>`:''}
+      </div>
       ${compact?planCoverageRows(g,p):''}
     </div>`;
   }
