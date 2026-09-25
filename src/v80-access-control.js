@@ -100,7 +100,7 @@
         const orientation=String(item.scope||'').trim();
         if(!orientation)continue;
         const set=new Set(out[orientation]||[]);
-        set.add('Formación Orientada');
+        for(const g of groupsForOrientation(orientation))if(g?.area)set.add(String(g.area));
         out[orientation]=[...set];
       }
     }
