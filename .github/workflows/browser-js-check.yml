@@ -60,13 +60,15 @@ jobs:
           const checks={
             'src/v47-phase2-matrix.js':['canEditGroup','editableSubjectsByOrientation','pci-phase2-groups-rendered'],
             'src/v80-access-control.js':['teacherEditSubjectsByOrientation','editableSubjectsByOrientation','coordinatorOrientation'],
-            'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Coordinadores por orientación'],
+            'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Ingresar con coordinaciones de Gestión','coordinatorOptions'],
             'src/v91-coverage-core.js':['universeForGroup','coverageForIds','offLevel','formatCoverage'],
             'src/v91-plans-coverage.js':['Agrupamiento · trayectoria','Agrupamiento · nivel','Planes del espacio','Criterios colegiados de evaluación','[1,2,3,4].map'],
             'src/v93-curricular-coverage-dashboard.js':['Panel de cobertura curricular','groupingLevelCoverage','formatTypeCoverage','v93d-space-list','valueMetric'],
-            'src/v38-phase2-workspace.js':['PCIPlanCoverageV94','Aporte al','Dentro del','v94-subjects','data-back-space'],
+            'src/v38-phase2-workspace.js':['PCIPlanCoverageV94','Aporte al','Dentro del','v95-coverage-table','data-back-space'],
             'src/v47-elective-plans.js':['PCIPlanCoverageV94','v94ElectiveCoverage','data-back-space'],
-            'src/ui-navigation-consistency.js':['.screen>.back{display:inline-flex!important','z-index:9997','closeTransientLayers']
+            'src/ui-navigation-consistency.js':['.screen>.back{display:inline-flex!important','z-index:9997','closeTransientLayers'],
+            'src/v71-lean-management.js':['coordinations','Coordinación de área','Coordinación de orientación','SHIFTS'],
+            'src/v80-access-control.js':['coordinatorAssignments','coordinatorEditableAreasByOrientation','groupsForOrientation']
           };
           for(const [file,needles] of Object.entries(checks)){
             const text=fs.readFileSync(file,'utf8');

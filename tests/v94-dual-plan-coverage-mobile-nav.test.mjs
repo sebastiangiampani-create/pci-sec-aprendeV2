@@ -92,8 +92,8 @@ test('V94 muestra cobertura por materia directamente en las tarjetas reales de p
   const source=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
   for(const needle of [
     'planCoverageSummary(g,p,true)',
-    'v94-subjects',
-    'v94-subject-metrics',
+    'v95-coverage-table',
+    'v95-coverage-line',
     'Aporte al',
     'Dentro del',
     'Los valores muestran contenidos usados/total y porcentaje'

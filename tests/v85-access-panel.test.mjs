@@ -32,14 +32,14 @@ test('V85 no reemplaza la autenticacion de backend',()=>{
 });
 
 
-test('V86 coordinacion se genera desde orientaciones y excluye Otros formatos pedagogicos',()=>{
+test('V95 coordinaciones se originan en Gestion y el acceso consume esos permisos',()=>{
   const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
   const access=fs.readFileSync('src/v80-access-control.js','utf8');
-  assert.match(panel,/function orientations\(\)/);
-  assert.match(panel,/state\.selected/);
-  assert.match(panel,/Coordinadores por orientación/);
-  assert.match(panel,/coordinatorOrientation/);
-  assert.doesNotMatch(panel,/Formación Orientada','Otros formatos pedagógicos/);
-  assert.match(access,/coordinatorOrientation/);
-  assert.match(access,/\{\[coordinatorOrientation\]:\[\.\.\.coordinatorAreas\]\}/);
+  const management=fs.readFileSync('src/v71-lean-management.js','utf8');
+  assert.match(panel,/Ingresar con coordinaciones de Gestión/);
+  assert.match(panel,/coordinatorOptions/);
+  assert.match(access,/coordinatorEditableAreasByOrientation/);
+  assert.match(management,/Coordinación de área/);
+  assert.match(management,/Coordinación de orientación/);
+  assert.doesNotMatch(management,/Otros formatos pedagógicos/);
 });

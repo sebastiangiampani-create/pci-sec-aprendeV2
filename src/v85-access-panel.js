@@ -65,7 +65,7 @@
     if(profile.role==='admin'){
       api.setSession({role:'admin'});
     }else if(profile.role==='coordinator'){
-      api.setSession({role:'coordinator',coordinatorOrientation:String(profile.coordinatorOrientation||''),coordinatorAreas:[...(profile.coordinatorAreas||[])]});
+      api.setSession({role:'coordinator',teacherId:String(profile.teacherId||''),email:String(profile.email||''),coordinatorOrientation:String(profile.coordinatorOrientation||''),coordinatorAreas:[...(profile.coordinatorAreas||[])]});
     }else if(profile.role==='teacher'){
       api.setSession({role:'teacher',teacherId:String(profile.teacherId||''),email:String(profile.email||'')});
     }else return false;
@@ -79,14 +79,15 @@
   function renderChip(profile){
     profileChip?.remove();
     const root=institutional();
-    const teacher=profile.role==='teacher'?teachers().find(t=>t.id===String(profile.teacherId||'')):null;
+    const teacher=['teacher','coordinator'].includes(profile.role)?teachers().find(t=>t.id===String(profile.teacherId||'')):null;
     const displayName=teacher?.name||labelOf(profile);
     const initials=displayName.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toUpperCase()).join('')||'U';
     const assigned=profile.role==='teacher'?Object.values(root.assignments||{}).filter(v=>String(v)===String(profile.teacherId||'')).length:0;
+    const coordRows=profile.role==='coordinator'?(root.coordinations||[]).filter(x=>String(x.teacherId||'')===String(profile.teacherId||'')):[];
     const meta=profile.role==='teacher'
       ? `${teacher?.cargoLabel||'Sin cargo informado'} · ${assigned} asignación${assigned===1?'':'es'}`
       : profile.role==='coordinator'
-        ? `${profile.coordinatorOrientation||'Orientación'} · ${(profile.coordinatorAreas||[]).join(', ')||'Sin áreas'}`
+        ? (coordRows.length?`${coordRows.length} coordinación${coordRows.length===1?'':'es'} · ${[...new Set(coordRows.map(x=>x.shift||'Sin especificar'))].join(' / ')}`:'Sin coordinaciones asignadas')
         : 'Acceso institucional completo';
 
     profileChip=document.createElement('div');
@@ -116,14 +117,31 @@
     return Array.isArray(state.selected)?state.selected.map(v=>String(v||'').trim()).filter(Boolean):[];
   }
 
-  function coordinatorOrientationOptions(){
-    const rows=orientations();
-    if(!rows.length)return '<p class="v85-empty-note">Todavía no hay orientaciones definidas en la escuela.</p>';
-    return rows.map(o=>`<button type="button" class="v85-orientation-card" data-v85-orientation="${esc(o)}"><span class="v85-role-number">Coordinador de orientación</span><strong>${esc(o)}</strong><small>Ver toda la escuela · editar su orientación</small></button>`).join('');
+  function coordinatorRows(){
+    const root=institutional(),coords=Array.isArray(root.coordinations)?root.coordinations:[];
+    const byTeacher=new Map();
+    for(const row of coords){
+      const tid=String(row.teacherId||'');if(!tid)continue;
+      if(!byTeacher.has(tid))byTeacher.set(tid,[]);
+      byTeacher.get(tid).push(row);
+    }
+    return [...byTeacher.entries()].map(([teacherId,coordinations])=>({
+      teacher:teachers().find(t=>t.id===teacherId),
+      teacherId,
+      coordinations
+    })).filter(x=>x.teacher).sort((a,b)=>a.teacher.name.localeCompare(b.teacher.name,'es'));
   }
 
-  function coordinatorAreaOptions(){
-    return AREAS.map(a=>`<label class="v85-check"><input type="checkbox" value="${esc(a)}"><span>${esc(a)}</span></label>`).join('');
+  function coordinatorOptions(){
+    const rows=coordinatorRows();
+    if(!rows.length)return '<option value="">Todavía no hay coordinadores asignados en Gestión</option>';
+    return '<option value="">Seleccionar coordinador</option>'+rows.map(x=>`<option value="${esc(x.teacherId)}">${esc(x.teacher.name)} · ${x.coordinations.length} coordinación${x.coordinations.length===1?'':'es'}</option>`).join('');
+  }
+
+  function coordinationSummary(teacherId){
+    const row=coordinatorRows().find(x=>x.teacherId===String(teacherId||''));
+    if(!row)return '';
+    return `<div class="v95-access-coords">${row.coordinations.map(x=>`<span><small>${x.kind==='orientation'?'Orientación':'Área'} · ${esc(x.shift||'Sin especificar')}</small><strong>${esc(x.scope||'')}</strong></span>`).join('')}</div>`;
   }
 
   function teacherOptions(){
@@ -199,42 +217,29 @@
     }
 
     if(role==='coordinator'){
+      const rows=coordinatorRows();
       detail.innerHTML=`
         <div class="v85-detail-copy">
           <p class="v85-eye">Coordinación</p>
-          <h2>Coordinadores por orientación</h2>
-          <p>La cantidad de accesos se genera a partir de las orientaciones definidas por la escuela. Elegí la orientación y luego el área o las áreas que ese coordinador puede editar.</p>
+          <h2>Ingresar con coordinaciones de Gestión</h2>
+          <p>Los permisos se derivan de las coordinaciones de área y orientación asignadas al docente. Si tiene varias, se acumulan automáticamente.</p>
         </div>
-        <div class="v85-orientation-grid">${coordinatorOrientationOptions()}</div>
-        <div class="v85-coordinator-areas" id="v85CoordinatorAreas" hidden>
-          <div class="v85-coordinator-scope">
-            <p class="v85-eye">Ámbito de edición</p>
-            <h3 id="v85CoordinatorTitle"></h3>
-            <p>Puede ver toda la propuesta curricular de la escuela. Solo puede editar las áreas seleccionadas dentro de esta orientación.</p>
-          </div>
-          <div class="v85-area-grid">${coordinatorAreaOptions()}</div>
-        </div>
+        <label class="v85-select-wrap">
+          <span>Coordinador</span>
+          <select id="v85CoordinatorSelect">${coordinatorOptions()}</select>
+        </label>
+        <div id="v85CoordinatorSummary" class="v85-coordinator-summary">${rows.length?'Seleccioná un coordinador para ver sus ámbitos.':'Primero asigná coordinadores desde Gestión → Asignación a espacios.'}</div>
         <button class="v85-enter" id="v85EnterCoordinator" disabled>Entrar como coordinador</button>`;
-      let coordinatorOrientation='';
-      const cards=[...detail.querySelectorAll('[data-v85-orientation]')];
-      const checks=[...detail.querySelectorAll('.v85-coordinator-areas input[type="checkbox"]')];
-      const areas=detail.querySelector('#v85CoordinatorAreas');
-      const title=detail.querySelector('#v85CoordinatorTitle');
+      const select=detail.querySelector('#v85CoordinatorSelect');
+      const summary=detail.querySelector('#v85CoordinatorSummary');
       const enter=detail.querySelector('#v85EnterCoordinator');
-      const refresh=()=>enter.disabled=!coordinatorOrientation||!checks.some(x=>x.checked);
-      cards.forEach(card=>card.onclick=()=>{
-        coordinatorOrientation=card.dataset.v85Orientation||'';
-        cards.forEach(x=>x.classList.toggle('selected',x===card));
-        if(areas)areas.hidden=false;
-        if(title)title.textContent='Coordinador · '+coordinatorOrientation;
-        checks.forEach(x=>x.checked=false);
-        refresh();
-      });
-      checks.forEach(x=>x.onchange=refresh);
+      select.onchange=()=>{
+        enter.disabled=!select.value;
+        if(summary)summary.innerHTML=select.value?coordinationSummary(select.value):'Seleccioná un coordinador para ver sus ámbitos.';
+      };
       enter.onclick=()=>{
-        const coordinatorAreas=checks.filter(x=>x.checked).map(x=>x.value);
-        if(!coordinatorOrientation||!coordinatorAreas.length)return;
-        applyProfile({role:'coordinator',coordinatorOrientation,coordinatorAreas});
+        const row=rows.find(x=>x.teacherId===select.value);if(!row)return;
+        applyProfile({role:'coordinator',teacherId:row.teacher.id,email:row.teacher.email,name:row.teacher.name});
       };
       return;
     }
@@ -287,6 +292,7 @@
     .v85-role-card strong{font-size:1rem}.v85-role-card small{color:#5f7382;line-height:1.45}.v85-role-number{font-size:.62rem;font-weight:900;color:#126e65}
     .v85-detail{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin:18px 22px 0;padding:20px;border:1px solid #d8e1e8;border-radius:20px;background:#f9fbfc}
     .v85-detail h2{margin:4px 0 6px}.v85-detail p{margin:0;color:#5f7382;line-height:1.45}
+    .v95-access-coords{display:flex;gap:6px;flex-wrap:wrap}.v95-access-coords span{display:grid;gap:2px;padding:7px 9px;border:1px solid #d8e1e8;border-radius:10px;background:#fff}.v95-access-coords small{color:#126e65;font-size:.48rem;font-weight:900;text-transform:uppercase}.v95-access-coords strong{font-size:.62rem}.v85-coordinator-summary{grid-column:1/-1;padding:10px 12px;border:1px solid #d8e1e8;border-radius:12px;background:#fff;color:#5f7382;font-size:.68rem}
     .v85-orientation-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v85-orientation-card{display:grid;gap:7px;min-height:116px;padding:16px;border:1px solid #d8e1e8;border-radius:18px;background:#fff;text-align:left;color:#12395c;box-shadow:0 10px 26px rgba(18,57,92,.05)}.v85-orientation-card:hover,.v85-orientation-card.selected{border-color:#126e65;box-shadow:0 14px 34px rgba(18,110,101,.12)}.v85-orientation-card.selected{background:#f4fbf9}.v85-orientation-card strong{font-size:.92rem}.v85-orientation-card small{color:#5f7382;line-height:1.4}.v85-coordinator-areas{grid-column:1/-1;display:grid;gap:12px;padding-top:4px}.v85-coordinator-scope{padding:14px 16px;border:1px solid #d8e1e8;border-radius:16px;background:#fff}.v85-coordinator-scope h3{margin:4px 0 6px}.v85-area-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .v85-check{display:flex;gap:8px;align-items:center;padding:10px 12px;border:1px solid #d8e1e8;border-radius:12px;background:#fff;font-size:.78rem;font-weight:750}.v85-check input{width:18px;height:18px}
     .v85-select-wrap{display:grid;gap:6px}.v85-select-wrap span{font-size:.7rem;font-weight:900;color:#3a5d7e}.v85-select-wrap select{min-width:280px;padding:11px;border:1px solid #d8e1e8;border-radius:12px;background:#fff;color:#12395c}
