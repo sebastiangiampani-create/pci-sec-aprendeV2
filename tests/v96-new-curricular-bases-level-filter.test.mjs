@@ -11,7 +11,7 @@ function decodeFg(){
 function decodeFo(){
   const files=['data/curriculum_v96/fo_all.txt',...Array.from({length:10},(_,i)=>`data/curriculum_v96/fo_part${String(i+2).padStart(2,'0')}.txt`)];
   const encoded=files.map(f=>fs.readFileSync(f,'utf8').trim()).join('');
-  return JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8')).slice(0,860);
+  return JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
 }
 
 test('V96 Formación General usa 979 contenidos y Tutoría solo 1º y 2º',()=>{
@@ -39,10 +39,10 @@ test('V96 Formación General conserva año materia eje subeje y contenido',()=>{
   }
 });
 
-test('V96 Formación Orientada usa 860 contenidos únicos e incluye Historia y Tecnología',()=>{
+test('V96 Formación Orientada usa 1049 contenidos completos e incluye Historia y Tecnología',()=>{
   const fo=decodeFo();
-  assert.equal(fo.length,860);
-  assert.equal(new Set(fo.map(x=>JSON.stringify(x))).size,860);
+  assert.equal(fo.length,1049);
+  assert.equal(new Set(fo.map(x=>JSON.stringify(x))).size,1049);
   assert.equal(fo.filter(x=>/historia.*orientad/i.test(String(x[2]||''))).length,98);
   assert.equal(fo.filter(x=>/tecnolog/i.test(String(x[2]||''))).length,91);
   assert.ok(fo.every(x=>String(x[0]||'').trim()&&String(x[2]||'').trim()&&String(x[3]||'').trim()&&String(x[5]||'').trim()));
@@ -52,8 +52,8 @@ test('V96 Bolsa curricular muestra Nivel y encadena Nivel Materia Eje Subeje',()
   const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
   for(const needle of [
     'id="v28level"','<span>Nivel</span>','Buscar por nivel, contenido, materia, eje o subeje',
-    'const atLevel=base.filter','const atSubject=atLevel.filter','<optgroup label="Ejes">',
-    '<optgroup label="Subejes">','contentMeta(c)','Trayectoria orientada'
+    'const atLevel=base.filter','const atSubject=atLevel.filter','const atAxis=atSubject.filter',
+    'id="v28subaxis"','<span>Subeje</span>','contentMeta(c)','Trayectoria orientada'
   ]) assert.ok(source.includes(needle),needle);
 });
 
@@ -79,10 +79,11 @@ test('V96 Tutoría legacy deja de estar activa',()=>{
   assert.ok(app.includes('loadCurriculum'));
 });
 
-test('V96 manifiesto documenta 979 FG y 860 FO',()=>{
+test('V96 manifiesto documenta 979 FG y 1049 FO',()=>{
   const manifest=JSON.parse(fs.readFileSync('data/curriculum_v96/manifest.json','utf8'));
   assert.equal(manifest.fgCount,979);
-  assert.equal(manifest.foCount,860);
+  assert.equal(manifest.foCount,1049);
+  assert.deepEqual(manifest.foBreakdown,{bloquesOrientados:860,historiaOrientada:98,tecnologiasInformacionOrientada:91});
   assert.deepEqual(manifest.tutoria.includedYears,[1,2]);
   assert.equal(manifest.historiaYTecnologiaIncludedInFo,true);
   assert.equal(manifest.foHasExplicitYear,false);
