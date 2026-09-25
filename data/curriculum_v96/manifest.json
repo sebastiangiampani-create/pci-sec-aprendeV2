@@ -16,24 +16,23 @@
     "includedYears": [1, 2],
     "countByYear": {"1": 10, "2": 9, "3": 0, "4": 0, "5": 0}
   },
-  "foCount": 1049,
-  "foBreakdown": {
-    "bloquesOrientados": 860,
-    "historiaOrientada": 98,
-    "tecnologiasInformacionOrientada": 91
-  },
+  "foCount": 860,
   "foByOrientation": {
-    "Agro y Ambiente": 138,
-    "Comunicación": 142,
-    "Lenguas": 61,
-    "Ciencias Sociales y Humanidades": 89,
-    "Arte": 247,
-    "Economía y Administración": 65,
-    "Literatura": 83,
-    "Energía y Sustentabilidad": 45,
-    "Educación Física": 95,
-    "Turismo": 84
+    "Agro y Ambiente": 97,
+    "Comunicación": 128,
+    "Lenguas": 47,
+    "Ciencias Sociales y Humanidades": 75,
+    "Arte - Artes Visuales": 66,
+    "Arte - Música": 72,
+    "Arte - Teatro": 67,
+    "Economía y Administración": 51,
+    "Literatura": 69,
+    "Energía y Sustentabilidad": 37,
+    "Educación Física": 81,
+    "Turismo": 70
   },
+  "historiaOrientadaCount": 98,
+  "tecnologiasInformacionOrientadaCount": 91,
   "historiaYTecnologiaIncludedInFo": true,
   "foHasExplicitYear": false,
   "fgFiles": [
