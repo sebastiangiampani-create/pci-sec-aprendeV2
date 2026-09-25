@@ -18,8 +18,8 @@
       #proposal>.card:empty,#proposal>.panel:empty,#proposal>.card.panel:has(> #proposalTitle:empty):not(:has(:not(#proposalTitle))){display:none!important;margin:0!important;padding:0!important;height:0!important;min-height:0!important;border:0!important}
       .screen>.back{display:inline-flex!important;align-items:center;gap:6px;min-height:38px;margin:10px 0 12px;padding:8px 12px;border:1px solid #cfd9e1!important;border-radius:999px!important;background:#fff!important;color:#12395c!important;font-weight:850!important;box-shadow:0 4px 12px rgba(18,57,92,.06)!important}
       @media(max-width:760px){
-        body{padding-bottom:150px}
-        #pciGlobalDock{position:fixed;top:auto;left:0;right:0;bottom:8px;margin:0;z-index:9997;padding:0 8px}
+        body{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+        #pciGlobalDock{position:fixed;top:auto;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom,0px));margin:0;z-index:9997;padding:0 8px}
         #pciGlobalDock .pci-dock-inner{width:100%;max-width:none;justify-content:space-around;border-radius:20px;padding:6px;box-sizing:border-box}
         #pciGlobalDock button{min-height:48px;padding:9px 11px;font-size:.68rem}
         #pciGlobalDock .pci-dock-icon{font-size:1.05rem}
