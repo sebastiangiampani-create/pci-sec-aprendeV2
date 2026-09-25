@@ -28,7 +28,27 @@ const st=document.createElement('style');st.textContent=`
 `;document.head.appendChild(st);
 async function unzip(txt){const b=Uint8Array.from(atob(txt.trim()),c=>c.charCodeAt(0)),s=new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(s).text())}
 function stableId(prefix,parts){const s=parts.map(v=>String(v??'')).join('\u241f');let h1=0x811c9dc5,h2=0x9e3779b9;for(let i=0;i<s.length;i++){const n=s.charCodeAt(i);h1=Math.imul(h1^n,0x01000193);h2=Math.imul(h2^(n+i),0x85ebca6b)}return`${prefix}:${(h1>>>0).toString(16).padStart(8,'0')}${(h2>>>0).toString(16).padStart(8,'0')}`}
-async function loadFG(){if(FG)return FG;const parts=await Promise.all(FGFILES.map(async url=>{const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación General');return r.text()}));const raw=await unzip(parts.join(''));FG=raw.map(([id,year,area,subject,axis,subaxis,text])=>({id:String(id||stableId('fgv96',[year,subject,axis,subaxis,text])),component:'FG',year:Number(year)||0,area:String(area||FG_AREA[String(subject||'').trim()]||''),subject:String(subject||'').trim(),axis:String(axis||'').trim(),subaxis:String(subaxis||'').trim(),text:String(text||'').trim()}));if(FG.length!==979)throw Error(`La base de Formación General cargó ${FG.length} contenidos y se esperaban 979.`);return FG}
+async function loadFG(){
+  if(FG)return FG;
+  const parts=await Promise.all(FGFILES.map(async url=>{
+    const r=await fetch(url,{cache:'force-cache'});
+    if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación General');
+    return r.text();
+  }));
+  const raw=await unzip(parts.join(''));
+  FG=raw.map(row=>({
+    id:String(row.id||stableId('fgv96',[row.year,row.subject,row.axis,row.subaxis,row.text])),
+    component:'FG',
+    year:Number(row.year)||0,
+    area:String(row.area||FG_AREA[String(row.subject||'').trim()]||''),
+    subject:String(row.subject||'').trim(),
+    axis:String(row.axis||'').trim(),
+    subaxis:String(row.subaxis||'').trim(),
+    text:String(row.text||'').trim()
+  }));
+  if(FG.length!==979)throw Error(`La base de Formación General cargó ${FG.length} contenidos y se esperaban 979.`);
+  return FG;
+}
 async function loadFOAll(){
   if(FO_ALL)return FO_ALL;
   const parts=await Promise.all(FOFILES.map(async url=>{
