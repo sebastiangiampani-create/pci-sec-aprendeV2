@@ -1,0 +1,28 @@
+{
+  "version": "v96",
+  "fgCount": 979,
+  "foCount": 1049,
+  "fgByYear": {
+    "1": 218,
+    "2": 205,
+    "3": 217,
+    "4": 198,
+    "5": 141
+  },
+  "fgTutorByYear": {
+    "1": 10,
+    "2": 9
+  },
+  "foByOrientation": {
+    "Agro y Ambiente": 138,
+    "Comunicación": 142,
+    "Lenguas": 61,
+    "Ciencias Sociales y Humanidades": 89,
+    "Arte": 247,
+    "Economía y Administración": 65,
+    "Literatura": 83,
+    "Energía y Sustentabilidad": 45,
+    "Educación Física": 95,
+    "Turismo": 84
+  }
+}
