@@ -38,11 +38,24 @@ test('V96 Formación General conserva año materia eje subeje y contenido',()=>{
   }
 });
 
-test('V96 runtime de FO exige 860 contenidos únicos y no 1049 duplicados',()=>{
+test('V96 runtime deduplica 1049 registros FO a 860 contenidos únicos',()=>{
   const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
-  assert.ok(source.includes("raw.length!==860"));
-  assert.ok(source.includes("contenidos únicos y se esperaban 860"));
-  assert.equal(source.includes("raw.length!==1049"),false);
+  assert.ok(source.includes('const decoded=await unzip(parts.join'));
+  assert.ok(source.includes('const unique=new Map()'));
+  assert.ok(source.includes("if(!unique.has(key))unique.set(key,row)"));
+  assert.ok(source.includes('raw.length!==860'));
+  assert.ok(source.includes('decoded.length'));
+});
+
+test('V96 archivo FO tiene 1049 registros brutos pero 860 únicos',()=>{
+  const raw=decodeFo();
+  assert.equal(raw.length,1049);
+  const unique=new Map();
+  for(const row of raw){
+    const key=(Array.isArray(row)?row:[]).map(v=>String(v??'').trim()).join('\u241f');
+    if(!unique.has(key))unique.set(key,row);
+  }
+  assert.equal(unique.size,860);
 });
 
 test('V96 Formación Orientada usa 860 contenidos únicos e incluye Historia y Tecnología',()=>{

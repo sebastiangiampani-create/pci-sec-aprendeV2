@@ -56,8 +56,14 @@ async function loadFOAll(){
     if(!r.ok)throw Error('No se pudo cargar la nueva base de Formación Orientada');
     return r.text();
   }));
-  const raw=await unzip(parts.join(''));
-  if(raw.length!==860)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos únicos y se esperaban 860.`);
+  const decoded=await unzip(parts.join(''));
+  const unique=new Map();
+  for(const row of decoded){
+    const key=(Array.isArray(row)?row:[]).map(v=>String(v??'').trim()).join('\u241f');
+    if(!unique.has(key))unique.set(key,row);
+  }
+  const raw=[...unique.values()];
+  if(raw.length!==860)throw Error(`La base de Formación Orientada cargó ${decoded.length} registros, ${raw.length} contenidos únicos y se esperaban 860.`);
   FO_ALL=raw.map(([orientation,suborientation,block,axis,subaxis,text])=>{
     orientation=String(orientation||'').trim();
     suborientation=String(suborientation||'').trim();
