@@ -57,7 +57,7 @@ async function loadFOAll(){
     return r.text();
   }));
   const raw=await unzip(parts.join(''));
-  if(raw.length!==1049)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos y se esperaban 1049.`);
+  if(raw.length!==860)throw Error(`La base de Formación Orientada cargó ${raw.length} contenidos únicos y se esperaban 860.`);
   FO_ALL=raw.map(([orientation,suborientation,block,axis,subaxis,text])=>{
     orientation=String(orientation||'').trim();
     suborientation=String(suborientation||'').trim();

@@ -38,6 +38,13 @@ test('V96 Formación General conserva año materia eje subeje y contenido',()=>{
   }
 });
 
+test('V96 runtime de FO exige 860 contenidos únicos y no 1049 duplicados',()=>{
+  const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
+  assert.ok(source.includes("raw.length!==860"));
+  assert.ok(source.includes("contenidos únicos y se esperaban 860"));
+  assert.equal(source.includes("raw.length!==1049"),false);
+});
+
 test('V96 Formación Orientada usa 860 contenidos únicos e incluye Historia y Tecnología',()=>{
   const fo=decodeFo().slice(0,860);
   assert.equal(fo.length,860);
