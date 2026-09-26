@@ -11,7 +11,9 @@ async function harness(){
     {id:'p-g1',year:1,area:'Ciencias Sociales',subject:'Geografía',text:'Geografia uno'},
     {id:'p-f1',year:1,area:'Ciencias Sociales',subject:'Formación Ética y Ciudadana',text:'FEC uno'},
     {id:'p-h3',year:2,area:'Ciencias Sociales',subject:'Historia',text:'Historia tres'},
-    {id:'p-g2',year:2,area:'Ciencias Sociales',subject:'Geografía',text:'Geografia dos'}
+    {id:'p-g2',year:2,area:'Ciencias Sociales',subject:'Geografía',text:'Geografia dos'},
+    {id:'p-m1',year:1,area:'Matemática',subject:'Matemática',text:'Matematica uno'},
+    {id:'p-m2',year:1,area:'Matemática',subject:'Matemática',text:'Matematica dos'}
   ]};
   const contents={
     c1:{id:'c1',component:'FG',subject:'Historia',text:'Historia uno'},
@@ -19,13 +21,21 @@ async function harness(){
     c3:{id:'c3',component:'FG',subject:'Geografía',text:'Geografia uno'},
     c4:{id:'c4',component:'FG',subject:'Formación Ética y Ciudadana',text:'FEC uno'},
     c5:{id:'c5',component:'FG',subject:'Historia',text:'Historia tres'},
-    c6:{id:'c6',component:'FG',subject:'Geografía',text:'Geografia dos'}
+    c6:{id:'c6',component:'FG',subject:'Geografía',text:'Geografia dos'},
+    cm1:{id:'cm1',component:'FG',subject:'Matemática',text:'Matematica uno'},
+    cm2:{id:'cm2',component:'FG',subject:'Matemática',text:'Matematica dos'}
+  };
+  const subjects={
+    's-h':{id:'s-h',name:'Historia',year:1,origin:'FG'},
+    's-g':{id:'s-g',name:'Geografía',year:1,origin:'FG'},
+    's-f':{id:'s-f',name:'Formación Ética y Ciudadana',year:1,origin:'FG'},
+    's-m':{id:'s-m',name:'Matemática',year:1,origin:'FG'}
   };
   const groups=[
-    {id:'lab-a',area:'Ciencias Sociales',type:'laboratorio',year:1,data:{contents:['c1','c3']}},
-    {id:'lab-b',area:'Ciencias Sociales',type:'laboratorio',year:1,data:{contents:['c1','c2']}},
-    {id:'troncal',area:'Ciencias Sociales',type:'troncal',year:1,data:{contents:['c4','c5']}},
-    {id:'lab-y2',area:'Ciencias Sociales',type:'laboratorio',year:2,data:{contents:['c5']}}
+    {id:'lab-c1',area:'Ciencias Sociales',type:'laboratorio',year:1,term:'1',subjectIds:['s-h','s-g'],data:{contents:['c1','c3']}},
+    {id:'lab-c2',area:'Ciencias Sociales',type:'laboratorio',year:1,term:'2',subjectIds:['s-h','s-f'],data:{contents:['c1','c2','c4']}},
+    {id:'lab-y2',area:'Ciencias Sociales',type:'laboratorio',year:2,term:'3',subjectIds:[],data:{contents:['c5']}},
+    {id:'troncal-m',area:'Matemática',type:'troncal',year:1,term:'1-2',subjectIds:['s-m'],data:{contents:['cm1','cm2']}}
   ];
   const window={
     addEventListener(){},
@@ -33,67 +43,89 @@ async function harness(){
       async loadCurriculum(){return{fg:data.rows,fo:[]}},
       getFGCatalog(){return data.rows},
       findContent(id){return contents[id]||null},
-      members(){return[]},
+      members(group){return (group?.subjectIds||[]).map(id=>subjects[id]).filter(Boolean)},
       getAreaPool(){return[]}
     }
   };
-  const context={
-    console,window,
-    fetch:async()=>({ok:true,json:async()=>data}),
-    Set,Map
-  };
+  const context={console,window,Set,Map};
   vm.runInNewContext(source,context,{filename:'src/v91-coverage-core.js'});
   await window.PCICoverageV91.ready();
   return {api:window.PCICoverageV91,groups};
 }
 
-test('V93 el 100 por ciento de un espacio FG es todo el agrupamiento del nivel',async()=>{
+function bySubject(result,name){
+  return result.bySubject.find(x=>x.subject===name);
+}
+
+test('V97 un laboratorio usa solo las materias que realmente conforman el agrupamiento',async()=>{
   const {api,groups}=await harness();
   const r=api.formatCoverage(groups[0]);
-  assert.equal(r.total,4);
+  assert.equal(r.total,3,'Historia 2 + Geografía 1');
   assert.equal(r.used,2);
-  assert.equal(r.percent,50);
-  assert.deepEqual([...r.bySubject.map(x=>[x.subject,x.total,x.used])],[
-    ['Formación Ética y Ciudadana',1,0],
-    ['Geografía',1,1],
-    ['Historia',2,1]
-  ]);
+  assert.equal(r.percent,66.7);
+  assert.deepEqual(
+    [...r.bySubject.map(x=>[x.subject,x.total,x.used,x.percent])],
+    [['Geografía',1,1,100],['Historia',2,1,50]]
+  );
+  assert.equal(r.bySubject.some(x=>x.subject==='Formación Ética y Ciudadana'),false);
 });
 
-test('V93 varios laboratorios se unen sin sumar repetidos',async()=>{
-  const {api,groups}=await harness();
-  const r=api.formatTypeCoverage(groups[0],groups);
-  assert.equal(r.total,4);
-  assert.equal(r.used,3);
-  assert.equal(r.percent,75);
-});
-
-test('V93 cobertura del agrupamiento en el nivel une todos los formatos',async()=>{
+test('V97 la cobertura anual del nivel une agrupamientos y no duplica contenidos',async()=>{
   const {api,groups}=await harness();
   const r=api.groupingLevelCoverage(groups[0],groups);
-  assert.equal(r.total,4);
-  assert.equal(r.used,4);
+  assert.equal(r.total,4,'Historia 2 + Geografía 1 + FEC 1');
+  assert.equal(r.used,4,'c1 aparece en C1 y C2 pero cuenta una sola vez');
   assert.equal(r.percent,100);
-  assert.equal(r.offLevel,1,'el contenido de segundo usado en primero no suma');
+  assert.deepEqual(
+    [...r.bySubject.map(x=>[x.subject,x.total,x.used])],
+    [
+      ['Formación Ética y Ciudadana',1,1],
+      ['Geografía',1,1],
+      ['Historia',2,2]
+    ]
+  );
 });
 
-test('V93 un plan usa el mismo denominador del nivel y no el del espacio',async()=>{
+test('V97 un plan de laboratorio se coteja contra anual y contra su agrupamiento',async()=>{
   const {api,groups}=await harness();
-  const r=api.coverageForIds(groups[0],['c1']);
-  assert.equal(r.total,4);
+  const r=api.planCoverage(groups[0],['c1']);
+  assert.equal(r.dual,true);
+  const historia=r.rows.find(x=>x.label==='Historia');
+  const geografia=r.rows.find(x=>x.label==='Geografía');
+  assert.deepEqual(
+    [historia.planUsed,historia.annualTotal,historia.annualPercent,historia.groupingTotal,historia.groupingPercent],
+    [1,2,50,1,100]
+  );
+  assert.deepEqual(
+    [geografia.planUsed,geografia.annualTotal,geografia.groupingTotal,geografia.groupingPercent],
+    [0,1,1,0]
+  );
+});
+
+test('V97 una troncal compara el plan solo con el anual de su materia',async()=>{
+  const {api,groups}=await harness();
+  const troncal=groups.find(x=>x.id==='troncal-m');
+  const space=api.formatCoverage(troncal);
+  assert.equal(space.total,2);
+  assert.equal(space.used,2);
+  const r=api.planCoverage(troncal,['cm1']);
+  assert.equal(r.dual,false);
+  assert.equal(r.rows.length,1);
+  assert.deepEqual(
+    [r.rows[0].label,r.rows[0].planUsed,r.rows[0].annualTotal,r.rows[0].annualPercent],
+    ['Matemática',1,2,50]
+  );
+});
+
+test('V97 los contenidos de otro nivel no suman a un agrupamiento',async()=>{
+  const {api,groups}=await harness();
+  const r=api.coverageForIds(groups[0],['c1','c5']);
+  assert.equal(r.total,3);
   assert.equal(r.used,1);
-  assert.equal(r.percent,25);
+  assert.equal(r.offLevel,1);
 });
 
-test('V93 la trayectoria usa la union de los niveles del agrupamiento',async()=>{
-  const {api,groups}=await harness();
-  const r=api.trajectoryCoverage('Ciencias Sociales',groups);
-  assert.equal(r.total,6);
-  assert.equal(r.used,5);
-  assert.equal(r.percent,83.3);
-});
-
-test('V93 carga panel de cobertura despues de V91 y conserva Tabla de control',()=>{
+test('V97 mantiene el panel separado de los planes y la tabla de control',()=>{
   const app=fs.readFileSync('app.html','utf8');
   const core=app.indexOf('src/v91-coverage-core.js');
   const plans=app.indexOf('src/v91-plans-coverage.js');
@@ -102,20 +134,38 @@ test('V93 carga panel de cobertura despues de V91 y conserva Tabla de control',(
   assert.ok(app.includes('src/v84-content-control-table.js'));
 });
 
-test('V93 panel muestra trayectoria nivel formatos y espacios',()=>{
-  const source=fs.readFileSync('src/v93-curricular-coverage-dashboard.js','utf8');
-  for(const needle of [
-    'Panel de cobertura curricular','Agrupamiento · trayectoria',
-    'groupingLevelCoverage','formatTypeCoverage','formatCoverage',
-    'bySubject','byComponent','v93d-space-list'
-  ]) assert.ok(source.includes(needle),needle);
+test('V97 no crea un segundo sistema de planes dentro de las tarjetas',()=>{
+  const source=fs.readFileSync('src/v91-plans-coverage.js','utf8');
+  assert.equal(source.includes('v91Plans'),false);
+  assert.equal(source.includes('data-v91-plan'),false);
+  assert.ok(source.includes('Cobertura del agrupamiento'));
+  assert.ok(source.includes('Cobertura anual del espacio'));
+  assert.ok(source.includes('formatCoverage'));
+  assert.ok(source.includes('v97-group-coverage'));
 });
 
-test('V93 FO respeta jerarquia bloque eje y trata Historia orientada o Tecnologia como materia',()=>{
+test('V97 los planes reales muestran anual y agrupamiento por materia',()=>{
+  const source=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
+  assert.ok(source.includes('Cobertura por materia'));
+  assert.ok(source.includes('Del anual'));
+  assert.ok(source.includes('Dentro del agrupamiento'));
+  assert.ok(source.includes('planCoverage(g,p.contentIds'));
+  assert.ok(source.includes('PCIPlanCoverageV94'));
+});
+
+test('V97 panel prioriza nivel, materia y agrupamientos sin repetir total de trayectoria',()=>{
+  const source=fs.readFileSync('src/v93-curricular-coverage-dashboard.js','utf8');
+  for(const needle of [
+    'Panel de cobertura curricular','Cobertura anual por materia',
+    'groupingLevelCoverage','formatCoverage','Agrupamientos del nivel',
+    'no se repite aquí el total general de la bolsa'
+  ]) assert.ok(source.includes(needle),needle);
+  assert.equal(source.includes('Agrupamiento · trayectoria'),false);
+});
+
+test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
-  const plans=fs.readFileSync('src/v91-plans-coverage.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
   assert.ok(core.includes('foBreakdown'));
   assert.ok(core.includes('axes'));
-  assert.ok(plans.includes('v93-axes'));
 });
