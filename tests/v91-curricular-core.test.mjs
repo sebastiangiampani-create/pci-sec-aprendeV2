@@ -57,7 +57,7 @@ test('V97 cobertura visible no duplica el sistema real de planes',()=>{
   assert.equal(source.includes('v91Plans'),false);
   assert.equal(source.includes('data-v91-plan'),false);
   const plans=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
-  assert.ok(plans.includes('planesBimestrales'));
+  assert.ok(plans.includes('plansBimestrales'));
   assert.ok(plans.includes('Cobertura por materia'));
   assert.ok(plans.includes('Dentro del agrupamiento'));
 });
