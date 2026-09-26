@@ -46,12 +46,13 @@ test('V92 docente edita solo los espacios cuyo materia y nivel provienen de su a
   assert.ok(phase.includes("card.querySelectorAll('input,textarea,[data-rm],[data-elec]').forEach(el=>el.disabled=true)"));
 });
 
-test('V92 los planes del Desarrollo Curricular heredan exactamente el permiso del espacio',()=>{
-  const plans=fs.readFileSync('src/v91-plans-coverage.js','utf8');
-  assert.ok(plans.includes("const editable=!!phase()?.canEditGroup?.(group)"));
-  assert.ok(plans.includes("planCard(group,plan,editable)"));
-  assert.ok(plans.includes("data-v91-field"));
-  assert.ok(plans.includes("data-v91-content"));
+test('V97 los planes reales del Desarrollo Curricular heredan el permiso del espacio',()=>{
+  const plans=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
+  assert.ok(plans.includes("const canEditGroup=g=>!!api()?.canEditGroup?.(g)"));
+  assert.ok(plans.includes("const editable=canEditGroup(g)"));
+  assert.ok(plans.includes("planChoices(g,p,editable)"));
+  assert.ok(plans.includes("Modo consulta."));
+  assert.ok(plans.includes("if(editable){"));
 });
 
 test('V92 mantiene Mapa, Desarrollo Curricular, cobertura y permisos sin reescribir el nucleo',()=>{
