@@ -43,10 +43,10 @@
       .v38-field input,.v38-field textarea{width:100%;padding:10px 11px;border:1px solid #d8e1e8;border-radius:10px;font:inherit;color:#12395c;background:#fff}.v38-field textarea{min-height:88px;resize:vertical}.v38-field textarea.activities{min-height:165px}
       .v38-stage{border:1px solid #d8e1e8;border-radius:12px;overflow:hidden}.v38-stage summary{padding:12px 14px;background:#f1f8f7;font-weight:900;cursor:pointer}.v38-stage-body{display:grid;gap:10px;padding:13px}
       .v38-note{padding:10px 12px;border-radius:10px;background:#f5f8fa;color:#5f7382;font-size:.77rem;line-height:1.4}.v38-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-      .v38-top-actions{display:flex;align-items:flex-start;gap:10px}.v94-plan-title h3{margin:7px 0 2px!important}.v94-plan-title p{margin:0;color:#5f7382;font-size:.8rem}.v94-coverage{display:block;margin-top:10px}.v95-plan-kpis{display:flex;gap:14px;flex-wrap:wrap;padding:7px 0 8px;border-top:1px solid #e5ebee;border-bottom:1px solid #e5ebee}.v95-plan-kpis span{display:flex;align-items:baseline;gap:6px}.v95-plan-kpis small{color:#5f7382;font-size:.48rem;font-weight:800}.v95-plan-kpis strong{color:#12395c;font-size:.7rem}.v95-coverage-table{margin-top:7px}.v95-coverage-head,.v95-coverage-line{display:grid;grid-template-columns:minmax(150px,1.5fr) minmax(100px,.8fr) minmax(110px,.9fr);gap:8px;align-items:center}.v95-coverage-table.single .v95-coverage-head,.v95-coverage-table.single .v95-coverage-line{grid-template-columns:minmax(150px,1.5fr) minmax(110px,.9fr)}.v95-coverage-head{padding:0 2px 4px;color:#7a8d99;font-size:.43rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em}.v95-coverage-line{padding:6px 2px;border-top:1px solid #edf1f3}.v95-coverage-line:first-of-type{border-top:0}.v95-coverage-line>div small,.v95-coverage-line>div strong,.v95-coverage-line>div span{display:block}.v95-coverage-line>div small{color:#126e65;font-size:.42rem;font-weight:900;text-transform:uppercase}.v95-coverage-line>div strong{margin-top:1px;font-size:.58rem}.v95-coverage-line>div span{font-size:.52rem;color:#5f7382}.v95-coverage-line>b{font-size:.52rem;color:#365d78;font-weight:850}.v95-coverage-line.axis{padding-left:12px;background:linear-gradient(90deg,#f8fbfb,transparent)}.v95-coverage-line.axis>div small{color:#7a8d99}.v94-plan-actions{margin-top:9px!important}.v94-editor-coverage>h3{margin-bottom:5px!important}
+      .v38-top-actions{display:flex;align-items:flex-start;gap:10px}.v94-plan-title h3{margin:7px 0 2px!important}.v94-plan-title p{margin:0;color:#5f7382;font-size:.8rem}.v94-coverage{display:block;margin-top:10px}.v95-coverage-rule{display:grid;gap:2px;padding:8px 10px;border:1px solid #d7e8e4;border-radius:10px;background:#f1f8f7}.v95-coverage-rule strong{color:#126e65;font-size:.64rem}.v95-coverage-rule span{color:#5f7382;font-size:.55rem;line-height:1.35}.v95-coverage-empty{margin-top:7px;padding:8px 10px;border:1px dashed #cbd8dc;border-radius:9px;color:#6b7f89;font-size:.6rem}.v95-coverage-table{margin-top:7px}.v95-coverage-head,.v95-coverage-line{display:grid;grid-template-columns:minmax(150px,1.5fr) minmax(100px,.8fr) minmax(110px,.9fr);gap:8px;align-items:center}.v95-coverage-table.single .v95-coverage-head,.v95-coverage-table.single .v95-coverage-line{grid-template-columns:minmax(150px,1.5fr) minmax(110px,.9fr)}.v95-coverage-head{padding:0 2px 4px;color:#7a8d99;font-size:.43rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em}.v95-coverage-line{padding:6px 2px;border-top:1px solid #edf1f3}.v95-coverage-line:first-of-type{border-top:0}.v95-coverage-line>div small,.v95-coverage-line>div strong,.v95-coverage-line>div span{display:block}.v95-coverage-line>div small{color:#126e65;font-size:.42rem;font-weight:900;text-transform:uppercase}.v95-coverage-line>div strong{margin-top:1px;font-size:.58rem}.v95-coverage-line>div span{font-size:.52rem;color:#5f7382}.v95-coverage-line>b{font-size:.52rem;color:#365d78;font-weight:850}.v95-coverage-line.axis{padding-left:12px;background:linear-gradient(90deg,#f8fbfb,transparent)}.v95-coverage-line.axis>div small{color:#7a8d99}.v94-plan-actions{margin-top:9px!important}.v94-editor-coverage>h3{margin-bottom:5px!important}
       .v38-pick-group{display:grid;gap:7px}.v38-pick-title{margin:8px 0 2px;color:#12395c;font-size:.73rem;font-weight:900}.v38-pick{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:9px;border:1px solid #d8e1e8;border-radius:10px}.v38-pick small{display:block;margin-bottom:3px;color:#5f7382}.v38-pick p{margin:0;line-height:1.35}
       @media(max-width:760px){.v38-modal{padding:0;align-items:end}.v38-shell{width:100%;max-height:96dvh;border-radius:18px 18px 0 0;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}.v38-grid,.v38-fields{grid-template-columns:1fr}.v38-field.full{grid-column:auto}.v38-body{padding:12px}.v38-top{padding:11px 12px;align-items:center}.v38-top-actions{min-width:0;align-items:center}.v38-top-actions>div{min-width:0}.v38-top h2{font-size:1rem;overflow:hidden;text-overflow:ellipsis}.v38-own-head{align-items:flex-start;flex-direction:column}.v38-card{padding:12px}.v95-coverage-head,.v95-coverage-line{grid-template-columns:minmax(115px,1.3fr) minmax(90px,.8fr) minmax(95px,.9fr)}.v95-coverage-table.single .v95-coverage-head,.v95-coverage-table.single .v95-coverage-line{grid-template-columns:minmax(115px,1.3fr) minmax(95px,.9fr)}.v38-actions button{min-height:42px}.v94-plan-actions{display:grid;grid-template-columns:1fr 1fr}.v94-plan-actions button{width:100%}.v38-footer{padding-bottom:8px}.v38-top>[data-close]{flex:0 0 auto}}
-      @media(max-width:430px){.v95-plan-kpis{gap:7px;display:grid;grid-template-columns:1fr}.v95-coverage-head,.v95-coverage-line{grid-template-columns:minmax(100px,1.1fr) minmax(82px,.85fr) minmax(86px,.9fr);gap:5px}.v95-coverage-table.single .v95-coverage-head,.v95-coverage-table.single .v95-coverage-line{grid-template-columns:minmax(100px,1.1fr) minmax(86px,.9fr)}.v95-coverage-head{font-size:.38rem}.v95-coverage-line>b{font-size:.47rem}.v38-top-actions>[data-back],.v38-top-actions>[data-back-space]{padding:7px 9px!important;font-size:.6rem!important}.v38-status{font-size:.6rem}}
+      @media(max-width:430px){.v95-coverage-head,.v95-coverage-line{grid-template-columns:minmax(100px,1.1fr) minmax(82px,.85fr) minmax(86px,.9fr);gap:5px}.v95-coverage-table.single .v95-coverage-head,.v95-coverage-table.single .v95-coverage-line{grid-template-columns:minmax(100px,1.1fr) minmax(86px,.9fr)}.v95-coverage-head{font-size:.38rem}.v95-coverage-line>b{font-size:.47rem}.v38-top-actions>[data-back],.v38-top-actions>[data-back-space]{padding:7px 9px!important;font-size:.6rem!important}.v38-status{font-size:.6rem}}
     `; document.head.appendChild(s);
   }
 
@@ -72,7 +72,7 @@
   const defaultSubject = g => (api()?.members?.(g)||[]).map(x=>x.name).filter(Boolean).join(' + ');
 
   function customEditor(gid,id=null){
-    const g=group(gid); if(!g) return;
+    const g=group(gid); if(!g||!canEditGroup(g)) return;
     const old=id?customs().find(x=>x.id===id&&x.groupId===gid):null;
     openModal(`<div class="v38-top"><div><div class="v28-eye">${esc(api()?.typeLabel?.(g.type)||g.type)} · ${esc(g.data?.name||g.name)}</div><h2>${old?'Editar contenido propio':'Agregar contenido propio'}</h2></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><form id="v38custom" class="v38-form"><div class="v38-note">Este contenido pertenece solamente a este espacio curricular. Queda separado de los contenidos priorizados oficiales.</div><div class="v38-fields"><label class="v38-field full"><span>Materia / bloque</span><input name="subject" required value="${esc(old?.subject||defaultSubject(g))}"></label><label class="v38-field full"><span>Eje / bloque <small>(opcional)</small></span><input name="axis" value="${esc(old?.axis||'')}"></label><label class="v38-field full"><span>Contenido propio del espacio</span><textarea name="text" required>${esc(old?.text||'')}</textarea></label></div><div class="v38-footer"><div>${old?'<button class="v28-btn secondary" type="button" data-delete>Eliminar</button>':''}</div><button class="v28-btn primary" type="submit">${old?'Guardar cambios':'Agregar contenido'}</button></div></form></div>`);
     const s=shell(); s.querySelector('[data-close]').onclick=closeModal;
@@ -86,6 +86,7 @@
     };
   }
   function deleteCustom(gid,id){
+    const g=group(gid);if(!g||!canEditGroup(g))return;
     if(!confirm('¿Eliminar este contenido propio de este espacio?'))return;
     const rows=customs(),i=rows.findIndex(x=>x.id===id);if(i>=0)rows.splice(i,1);
     const gd=gdata(gid);if(gd){gd.contents=(gd.contents||[]).filter(x=>x!==id);(gd.plansBimestrales||[]).forEach(p=>p.contentIds=(p.contentIds||[]).filter(x=>x!==id));}
@@ -107,59 +108,55 @@
   function planStatus(p){const stages=STAGES.map(([id])=>p.stages?.[id]||{}),has=!!(p.name||p.synopsis||p.objectives||(p.contentIds||[]).length||stages.some(x=>x.description||x.duration||x.resources||x.activities));if(!has)return'Sin iniciar';if(String(p.objectives||'').trim()&&(p.contentIds||[]).length&&stages.every(x=>String(x.activities||'').trim()))return'Completo';return'En elaboración'}
 
   const coverageApi=()=>window.PCICoverageV91||null;
+  const canEditGroup=g=>!!api()?.canEditGroup?.(g);
   const ratio=(used,total)=>Number(total)?Math.round(Number(used||0)/Number(total)*1000)/10:null;
   const metric=(used,total)=>Number(total)?`${Number(used||0)}/${Number(total)} · ${ratio(used,total)}%`:'—';
   const dualSpace=g=>['laboratorio','taller'].includes(String(g?.type||'').toLowerCase());
 
   function planCoverage(g,ids=[]){
     const api=coverageApi();
-    const level=api?.coverageForIds?.(g,ids)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
-    const space=api?.formatCoverage?.(g)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
-    const levelUsed=Number(level.total)?Number(level.used||0):Number(level.trajectoryUsed||level.used||0);
-    const levelTotal=Number(level.total)||Number(level.trajectoryTotal||0);
-    const levelLabel=Number(level.total)?`Nivel ${g.year}`:'Trayectoria disponible';
-    const spaceUsed=Number(space.used||0);
-    const bySubject=(level.bySubject||[]).map(row=>{
-      const s=(space.bySubject||[]).find(x=>String(x.subject)===String(row.subject))||{used:0};
-      return {label:row.subject,kind:'Materia',levelUsed:Number(row.used||0),levelTotal:Number(row.total||0),spaceTotal:Number(s.used||0)};
-    });
-    const byComponent=(level.byComponent||[]).map(row=>{
-      const s=(space.byComponent||[]).find(x=>String(x.label)===String(row.label))||{used:0,axes:[]};
+    if(api?.planCoverage)return api.planCoverage(g,ids);
+    const annual=api?.coverageForIds?.(g,ids)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
+    const grouping=api?.formatCoverage?.(g)||{total:0,used:0,percent:null,bySubject:[],byComponent:[]};
+    const dual=dualSpace(g);
+    const annualRows=annual.bySubject?.length?annual.bySubject:(annual.byComponent||[]).map(x=>({subject:x.label,kind:x.kind,total:x.total,used:x.used,percent:x.percent}));
+    const groupingRows=grouping.bySubject?.length?grouping.bySubject:(grouping.byComponent||[]).map(x=>({subject:x.label,kind:x.kind,total:x.total,used:x.used,percent:x.percent}));
+    const rows=annualRows.map(x=>{
+      const match=groupingRows.find(y=>String(y.subject)===String(x.subject))||{used:0};
+      const groupingTotal=Number(match.used||0);
       return {
-        label:row.label,kind:row.kind||'Componente',levelUsed:Number(row.used||0),levelTotal:Number(row.total||0),spaceTotal:Number(s.used||0),
-        axes:(row.axes||[]).map(a=>{
-          const sa=(s.axes||[]).find(x=>String(x.axis)===String(a.axis))||{used:0};
-          return {label:a.axis,levelUsed:Number(a.used||0),levelTotal:Number(a.total||0),spaceTotal:Number(sa.used||0)};
-        })
+        label:x.subject,kind:x.kind||'Materia',planUsed:Number(x.used||0),
+        annualTotal:Number(x.total||0),annualPercent:Number(x.percent||0),
+        groupingTotal,groupingPercent:groupingTotal?ratio(x.used,groupingTotal):null,axes:[]
       };
     });
-    return {level,space,levelUsed,levelTotal,levelLabel,spaceUsed,bySubject,byComponent};
+    return {annual,grouping,dual,basisLabel:Number(annual.total)?`Nivel ${g.year}`:'Trayectoria',rows};
   }
 
   function planCoverageRows(g,p){
-    const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
-    const rows=r.bySubject.length?r.bySubject:r.byComponent;
-    if(!rows.length)return'';
+    const r=planCoverage(g,p.contentIds||[]),dual=r.dual;
+    const rows=r.rows||[];
+    if(!rows.length)return'<div class="v95-coverage-empty">Todavía no hay cobertura oficial calculable para este plan.</div>';
     return `<div class="v95-coverage-table ${dual?'dual':'single'}">
-      <div class="v95-coverage-head"><span>Materia / componente</span><span>${esc(r.levelLabel)}</span>${dual?'<span>Dentro del espacio</span>':''}</div>
+      <div class="v95-coverage-head"><span>Materia / componente</span><span>Del anual · ${esc(r.basisLabel)}</span>${dual?'<span>Dentro del agrupamiento</span>':''}</div>
       ${rows.map(x=>`
         <div class="v95-coverage-line">
-          <div><small>${esc(x.kind)}</small><strong>${esc(x.label)}</strong></div>
-          <b>${metric(x.levelUsed,x.levelTotal)}</b>
-          ${dual?`<b>${metric(x.levelUsed,x.spaceTotal)}</b>`:''}
+          <div><small>${esc(x.kind||'Materia')}</small><strong>${esc(x.label)}</strong></div>
+          <b>${metric(x.planUsed,x.annualTotal)}</b>
+          ${dual?`<b>${metric(x.planUsed,x.groupingTotal)}</b>`:''}
         </div>
-        ${(x.axes||[]).map(a=>`<div class="v95-coverage-line axis"><div><small>Eje</small><span>${esc(a.label)}</span></div><b>${metric(a.levelUsed,a.levelTotal)}</b>${dual?`<b>${metric(a.levelUsed,a.spaceTotal)}</b>`:''}</div>`).join('')}
+        ${(x.axes||[]).map(a=>`<div class="v95-coverage-line axis"><div><small>Eje</small><span>${esc(a.label)}</span></div><b>${metric(a.planUsed,a.annualTotal)}</b>${dual?`<b>${metric(a.planUsed,a.groupingTotal)}</b>`:''}</div>`).join('')}
       `).join('')}
     </div>`;
   }
 
   function planCoverageSummary(g,p,compact=false){
-    const r=planCoverage(g,p.contentIds||[]),dual=dualSpace(g);
+    const r=planCoverage(g,p.contentIds||[]),dual=r.dual;
+    const help=dual
+      ?'Cada materia se compara con su prescripto anual del nivel y con los contenidos de esa materia incluidos en este agrupamiento.'
+      :'Cada plan se compara con el prescripto anual de la materia para este nivel.';
     return `<div class="v94-coverage ${compact?'compact':''}">
-      <div class="v95-plan-kpis">
-        <span><small>Aporte al ${esc(r.levelLabel.toLowerCase())}</small><strong>${metric(r.levelUsed,r.levelTotal)}</strong></span>
-        ${dual?`<span><small>Dentro del ${g.type==='taller'?'taller':'laboratorio'}</small><strong>${metric(r.levelUsed,r.spaceUsed)}</strong></span>`:''}
-      </div>
+      <div class="v95-coverage-rule"><strong>Cobertura por materia</strong><span>${esc(help)}</span></div>
       ${compact?planCoverageRows(g,p):''}
     </div>`;
   }
@@ -167,19 +164,38 @@
   async function planList(gid){
     const g=group(gid);if(!g)return;const ps=plans(g);
     try{await coverageApi()?.ready?.()}catch(e){console.warn('[V94 cobertura planes]',e)}
-    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back-space>← Volver al espacio</button><div><div class="v28-eye">${esc(g.area)} · ${esc(api()?.typeLabel?.(g.type)||g.type)}</div><h2>Planes bimestrales · ${esc(g.data.name||g.name)}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><div class="v38-note">${ps.length===4?'Espacio anual: 4 planes bimestrales.':'Espacio cuatrimestral: 2 planes bimestrales.'} Los valores muestran contenidos usados/total y porcentaje.</div><div class="v38-grid" style="margin-top:12px">${ps.map(p=>`<article class="v38-card v94-plan-card"><div class="v94-plan-title"><div><span class="v38-status">${esc(planStatus(p))}</span><h3>Plan ${p.number}</h3><p>${esc(p.name||`Bimestre ${p.number}`)}</p></div></div>${planCoverageSummary(g,p,true)}<div class="v38-actions v94-plan-actions"><button class="main" data-open="${p.number}">Abrir</button><button class="secondary" data-print="${p.number}">Imprimir</button></div></article>`).join('')}</div></div>`);
+    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back-space>← Volver al espacio</button><div><div class="v28-eye">${esc(g.area)} · ${esc(api()?.typeLabel?.(g.type)||g.type)}</div><h2>Planes bimestrales · ${esc(g.data.name||g.name)}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><div class="v38-note">${ps.length===4?'Espacio anual: 4 planes bimestrales.':'Espacio cuatrimestral: 2 planes bimestrales.'} La cobertura se lee materia por materia; los contenidos repetidos no se vuelven a contar.</div><div class="v38-grid" style="margin-top:12px">${ps.map(p=>`<article class="v38-card v94-plan-card"><div class="v94-plan-title"><div><span class="v38-status">${esc(planStatus(p))}</span><h3>Plan ${p.number}</h3><p>${esc(p.name||`Bimestre ${p.number}`)}</p></div></div>${planCoverageSummary(g,p,true)}<div class="v38-actions v94-plan-actions"><button class="main" data-open="${p.number}">Abrir</button><button class="secondary" data-print="${p.number}">Imprimir</button></div></article>`).join('')}</div></div>`);
     const s=shell();s.querySelector('[data-close]').onclick=closeModal;s.querySelector('[data-back-space]').onclick=closeModal;s.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>planEditor(gid,+b.dataset.open));s.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>printPlan(gid,+b.dataset.print));
   }
-  function planChoices(g,p){
+  function planChoices(g,p,editable=true){
     const rows=(g.data.contents||[]).map(content).filter(Boolean),official=rows.filter(x=>x.component!=='CUSTOM'),own=rows.filter(x=>x.component==='CUSTOM');
-    const render=(arr,label)=>arr.length?`<div class="v38-pick-title">${esc(label)}</div><div class="v38-pick-group">${arr.map(c=>`<label class="v38-pick"><input type="checkbox" data-pcontent="${esc(c.id)}" ${(p.contentIds||[]).includes(String(c.id))?'checked':''}><span><small>${esc(c.subject||'')}${c.axis?` · ${esc(c.axis)}`:''}</small><p>${esc(c.text||'')}</p></span></label>`).join('')}</div>`:'';
+    const disabled=editable?'':' disabled';
+    const render=(arr,label)=>arr.length?`<div class="v38-pick-title">${esc(label)}</div><div class="v38-pick-group">${arr.map(c=>`<label class="v38-pick"><input type="checkbox" data-pcontent="${esc(c.id)}" ${(p.contentIds||[]).includes(String(c.id))?'checked':''}${disabled}><span><small>${esc(c.subject||'')}${c.axis?` · ${esc(c.axis)}`:''}</small><p>${esc(c.text||'')}</p></span></label>`).join('')}</div>`:'';
     return rows.length?`${render(official,'Contenidos priorizados / oficiales')}${render(own,'Contenidos propios del espacio')}`:'<div class="v38-note">Primero asigná contenidos priorizados o agregá contenidos propios al espacio.</div>';
   }
-  function stageEditor(id,label,s){return`<details class="v38-stage" open><summary>${esc(label)}</summary><div class="v38-stage-body"><label class="v38-field full"><span>Presentación de la etapa <small>(opcional)</small></span><textarea data-stage="${id}" data-sfield="description">${esc(s.description)}</textarea></label><label class="v38-field"><span>Duración estimada</span><input data-stage="${id}" data-sfield="duration" value="${esc(s.duration)}"></label><label class="v38-field full"><span>Recursos</span><textarea data-stage="${id}" data-sfield="resources">${esc(s.resources)}</textarea></label><label class="v38-field full"><span>Actividades dirigidas al estudiante</span><textarea class="activities" data-stage="${id}" data-sfield="activities">${esc(s.activities)}</textarea></label></div></details>`}
+  function stageEditor(id,label,s,editable=true){
+    const disabled=editable?'':' disabled';
+    return `<details class="v38-stage" open><summary>${esc(label)}</summary><div class="v38-stage-body"><label class="v38-field full"><span>Presentación de la etapa <small>(opcional)</small></span><textarea data-stage="${id}" data-sfield="description"${disabled}>${esc(s.description)}</textarea></label><label class="v38-field"><span>Duración estimada</span><input data-stage="${id}" data-sfield="duration" value="${esc(s.duration)}"${disabled}></label><label class="v38-field full"><span>Recursos</span><textarea data-stage="${id}" data-sfield="resources"${disabled}>${esc(s.resources)}</textarea></label><label class="v38-field full"><span>Actividades dirigidas al estudiante</span><textarea class="activities" data-stage="${id}" data-sfield="activities"${disabled}>${esc(s.activities)}</textarea></label></div></details>`;
+  }
   function planEditor(gid,n){
-    const g=group(gid);if(!g)return;const ps=plans(g),p=ps[n-1];
-    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back>← Planes</button><div><div class="v28-eye">${esc(g.area)} · ${esc(g.data.name||g.name)}</div><h2>Plan bimestral ${n} de ${ps.length}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body"><form id="v38plan" class="v38-form"><section class="v38-section"><h3>Datos generales</h3><div class="v38-fields"><label class="v38-field"><span>Tipo</span><input readonly value="${esc(api()?.typeLabel?.(g.type)||g.type)}"></label><label class="v38-field"><span>Ubicación</span><input readonly value="${esc(api()?.termText?.(g)||g.term)} · Bimestre ${n}"></label><label class="v38-field full"><span>Nombre del plan</span><input data-pfield="name" value="${esc(p.name)}"></label><label class="v38-field full"><span>Sinopsis</span><textarea data-pfield="synopsis">${esc(p.synopsis)}</textarea></label></div></section><section class="v38-section v94-editor-coverage"><h3>Cobertura del plan</h3><div id="v94PlanCoverage">${planCoverageSummary(g,p,true)}</div></section><section class="v38-section"><h3>Contenidos del plan</h3>${planChoices(g,p)}</section><section class="v38-section"><h3>Objetivos de aprendizaje</h3><textarea data-pfield="objectives" style="width:100%;min-height:105px;padding:10px;border:1px solid #d8e1e8;border-radius:10px">${esc(p.objectives)}</textarea></section><section class="v38-section"><h3>Etapas del plan</h3><div style="display:grid;gap:10px">${STAGES.map(([id,l])=>stageEditor(id,l,p.stages[id])).join('')}</div></section><div class="v38-footer"><div><button class="v28-btn secondary" type="button" data-back-footer>← Planes</button> <button class="v28-btn secondary" type="button" data-preview>Vista previa / imprimir</button></div><button class="v28-btn primary" type="submit">Guardar plan</button></div></form></div>`);
-    const s=shell();const back=()=>{savePlan(p);planList(gid)};s.querySelector('[data-close]').onclick=closeModal;s.querySelector('[data-back]').onclick=back;s.querySelector('[data-back-footer]').onclick=back;s.querySelector('[data-preview]').onclick=()=>{savePlan(p);printPlan(gid,n)};s.querySelectorAll('[data-pcontent]').forEach(cb=>cb.addEventListener('change',()=>{p.contentIds=[...s.querySelectorAll('[data-pcontent]:checked')].map(x=>String(x.dataset.pcontent));const host=s.querySelector('#v94PlanCoverage');if(host)host.innerHTML=planCoverageSummary(g,p,true)}));s.querySelector('#v38plan').onsubmit=e=>{e.preventDefault();savePlan(p);planList(gid)};
+    const g=group(gid);if(!g)return;
+    const editable=canEditGroup(g),disabled=editable?'':' disabled';
+    const ps=plans(g),p=ps[n-1];
+    const readOnlyNote=editable?'':'<div class="v38-note"><strong>Modo consulta.</strong> Podés revisar el plan y su cobertura, pero la edición corresponde al espacio que tenés asignado.</div>';
+    const saveButton=editable?'<button class="v28-btn primary" type="submit">Guardar plan</button>':'<span class="v38-status">Modo consulta</span>';
+    openModal(`<div class="v38-top"><div class="v38-top-actions"><button class="v28-btn secondary small" type="button" data-back>← Planes</button><div><div class="v28-eye">${esc(g.area)} · ${esc(g.data.name||g.name)}</div><h2>Plan bimestral ${n} de ${ps.length}</h2></div></div><button class="v28-btn secondary small" type="button" data-close>Cerrar</button></div><div class="v38-body">${readOnlyNote}<form id="v38plan" class="v38-form"><section class="v38-section"><h3>Datos generales</h3><div class="v38-fields"><label class="v38-field"><span>Tipo</span><input readonly value="${esc(api()?.typeLabel?.(g.type)||g.type)}"></label><label class="v38-field"><span>Ubicación</span><input readonly value="${esc(api()?.termText?.(g)||g.term)} · Bimestre ${n}"></label><label class="v38-field full"><span>Nombre del plan</span><input data-pfield="name" value="${esc(p.name)}"${disabled}></label><label class="v38-field full"><span>Sinopsis</span><textarea data-pfield="synopsis"${disabled}>${esc(p.synopsis)}</textarea></label></div></section><section class="v38-section v94-editor-coverage"><h3>Cobertura del plan</h3><div id="v94PlanCoverage">${planCoverageSummary(g,p,true)}</div></section><section class="v38-section"><h3>Contenidos del plan</h3>${planChoices(g,p,editable)}</section><section class="v38-section"><h3>Objetivos de aprendizaje</h3><textarea data-pfield="objectives" style="width:100%;min-height:105px;padding:10px;border:1px solid #d8e1e8;border-radius:10px"${disabled}>${esc(p.objectives)}</textarea></section><section class="v38-section"><h3>Etapas del plan</h3><div style="display:grid;gap:10px">${STAGES.map(([id,l])=>stageEditor(id,l,p.stages[id],editable)).join('')}</div></section><div class="v38-footer"><div><button class="v28-btn secondary" type="button" data-back-footer>← Planes</button> <button class="v28-btn secondary" type="button" data-preview>Vista previa / imprimir</button></div>${saveButton}</div></form></div>`);
+    const s=shell();
+    const back=()=>{if(editable)savePlan(p);planList(gid)};
+    s.querySelector('[data-close]').onclick=closeModal;
+    s.querySelector('[data-back]').onclick=back;
+    s.querySelector('[data-back-footer]').onclick=back;
+    s.querySelector('[data-preview]').onclick=()=>{if(editable)savePlan(p);printPlan(gid,n)};
+    if(editable){
+      s.querySelectorAll('[data-pcontent]').forEach(cb=>cb.addEventListener('change',()=>{p.contentIds=[...s.querySelectorAll('[data-pcontent]:checked')].map(x=>String(x.dataset.pcontent));const host=s.querySelector('#v94PlanCoverage');if(host)host.innerHTML=planCoverageSummary(g,p,true)}));
+      s.querySelector('#v38plan').onsubmit=e=>{e.preventDefault();savePlan(p);planList(gid)};
+    }else{
+      s.querySelector('#v38plan').onsubmit=e=>e.preventDefault();
+    }
   }
   function savePlan(p){const f=shell()?.querySelector('#v38plan');if(!f)return;f.querySelectorAll('[data-pfield]').forEach(x=>p[x.dataset.pfield]=x.value);p.contentIds=[...f.querySelectorAll('[data-pcontent]:checked')].map(x=>String(x.dataset.pcontent));p.stages=p.stages||{};f.querySelectorAll('[data-stage][data-sfield]').forEach(x=>{const id=x.dataset.stage;p.stages[id]=p.stages[id]||blankStage();p.stages[id][x.dataset.sfield]=x.value});p.updatedAt=new Date().toISOString();persist()}
 
@@ -197,9 +213,11 @@
       card.querySelector('.v38-own')?.remove();
       card.querySelector('.v38-actions')?.remove();
       const assigned=card.querySelector('.v28-assigned-wrap');if(!assigned)return;
-      const own=groupCustoms(gid);
-      const section=document.createElement('section');section.className='v38-own';section.innerHTML=`<div class="v38-own-head"><div><strong>Contenidos propios del espacio</strong><small>Desarrollo institucional, separado de los priorizados.</small></div><button class="v38-own-add" type="button">+ Agregar contenido</button></div><div class="v38-own-list">${own.length?own.map(c=>`<article class="v38-own-item"><small>${esc(c.subject||'')}${c.axis?` · ${esc(c.axis)}`:''}</small><p>${esc(c.text||'')}</p><div class="v38-own-actions"><button type="button" data-edit="${esc(c.id)}">Editar</button><button type="button" data-delete="${esc(c.id)}">Quitar</button></div></article>`).join(''):'<div class="v38-empty">Todavía no agregaste contenidos propios a este espacio.</div>'}</div>`;
-      section.querySelector('.v38-own-add').onclick=e=>{e.stopPropagation();customEditor(gid)};
+      const editable=canEditGroup(g),own=groupCustoms(gid);
+      const ownActions=c=>editable?`<div class="v38-own-actions"><button type="button" data-edit="${esc(c.id)}">Editar</button><button type="button" data-delete="${esc(c.id)}">Quitar</button></div>`:'';
+      const ownControl=editable?'<button class="v38-own-add" type="button">+ Agregar contenido</button>':'<span class="v38-status">Modo consulta</span>';
+      const section=document.createElement('section');section.className='v38-own';section.innerHTML=`<div class="v38-own-head"><div><strong>Contenidos propios del espacio</strong><small>Desarrollo institucional, separado de los priorizados.</small></div>${ownControl}</div><div class="v38-own-list">${own.length?own.map(c=>`<article class="v38-own-item"><small>${esc(c.subject||'')}${c.axis?` · ${esc(c.axis)}`:''}</small><p>${esc(c.text||'')}</p>${ownActions(c)}</article>`).join(''):'<div class="v38-empty">Todavía no agregaste contenidos propios a este espacio.</div>'}</div>`;
+      section.querySelector('.v38-own-add')?.addEventListener('click',e=>{e.stopPropagation();customEditor(gid)});
       section.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.stopPropagation();customEditor(gid,b.dataset.edit)});
       section.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteCustom(gid,b.dataset.delete)});
       assigned.insertAdjacentElement('afterend',section);

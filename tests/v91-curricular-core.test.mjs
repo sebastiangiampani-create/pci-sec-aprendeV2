@@ -36,28 +36,30 @@ test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=
   assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
 });
 
-test('V93 cobertura usa como 100 por ciento el agrupamiento completo del nivel',()=>{
+test('V97 cobertura toma materias reales del agrupamiento y deduplica por nivel',()=>{
   const source=fs.readFileSync('src/v91-coverage-core.js','utf8');
-  assert.ok(source.includes("universeForLevel"));
-  assert.ok(source.includes("x.year===Number(year)&&x._area===ak"));
-  assert.ok(source.includes("groupingLevelCoverage"));
-  assert.ok(source.includes("formatTypeCoverage"));
-  assert.ok(source.includes("trajectoryCoverage"));
-  assert.ok(source.includes("offLevel"));
+  assert.ok(source.includes('memberRows(group)'));
+  assert.ok(source.includes('universeForGroup'));
+  assert.ok(source.includes('universeForGroups'));
+  assert.ok(source.includes('fgCoverageAgainstUniverse'));
+  assert.ok(source.includes('groupingLevelCoverage'));
+  assert.ok(source.includes('planCoverage'));
+  assert.ok(source.includes('offLevel'));
 });
 
-test('V93 mantiene cuatro planes y muestra trayectoria nivel formato espacio y plan',()=>{
+test('V97 cobertura visible no duplica el sistema real de planes',()=>{
   const source=fs.readFileSync('src/v91-plans-coverage.js','utf8');
-  assert.ok(source.includes("[1,2,3,4].map"));
-  assert.ok(source.includes("Agrupamiento · trayectoria"));
-  assert.ok(source.includes("Agrupamiento · nivel"));
-  assert.ok(source.includes("Este espacio"));
-  assert.ok(source.includes("Planes del espacio"));
-  assert.ok(source.includes("Primer cuatrimestre · Planes 1 y 2"));
-  assert.ok(source.includes("Segundo cuatrimestre · Planes 3 y 4"));
-  assert.ok(source.includes("Criterios colegiados de evaluación"));
-  assert.ok(source.includes("coverageForIds?.(group,plan.contents)"));
-  assert.ok(source.includes("formatTypeCoverage"));
+  assert.ok(source.includes('Cobertura del agrupamiento'));
+  assert.ok(source.includes('Cobertura anual del espacio'));
+  assert.ok(source.includes('Cada materia se coteja'));
+  assert.ok(source.includes('formatCoverage'));
+  assert.ok(source.includes('v97-group-coverage'));
+  assert.equal(source.includes('v91Plans'),false);
+  assert.equal(source.includes('data-v91-plan'),false);
+  const plans=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
+  assert.ok(plans.includes('plansBimestrales'));
+  assert.ok(plans.includes('Cobertura por materia'));
+  assert.ok(plans.includes('Dentro del agrupamiento'));
 });
 
 test('V91 perfil muestra cargos reales y asignaciones',()=>{
