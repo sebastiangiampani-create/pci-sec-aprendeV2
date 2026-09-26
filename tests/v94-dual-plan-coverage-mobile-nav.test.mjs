@@ -62,41 +62,46 @@ test('V94 usa valores absolutos y porcentaje',()=>{
   assert.equal(api.metric(0,50),'0/50 · 0%');
 });
 
-test('V94 laboratorio mide plan contra nivel y contra espacio',()=>{
+test('V97 laboratorio mide cada materia contra anual y contra agrupamiento',()=>{
   const api=loadPlanCoverage();
   const group={type:'laboratorio',year:1};
   const plan={contentIds:['h1','g1']};
   const result=api.planCoverage(group,plan.contentIds);
-  assert.equal(result.levelUsed,2);
-  assert.equal(result.levelTotal,40);
-  assert.equal(result.spaceUsed,15);
+  assert.equal(result.dual,true);
+  assert.equal(result.rows.length,3);
+  const historia=result.rows.find(x=>x.label==='Historia');
+  assert.deepEqual(
+    [historia.planUsed,historia.annualTotal,historia.groupingTotal],
+    [1,20,8]
+  );
   const html=api.planCoverageSummary(group,plan,true);
-  assert.match(html,/2\/40 · 5%/);
-  assert.match(html,/2\/15 · 13\.3%/);
+  assert.match(html,/Cobertura por materia/);
+  assert.match(html,/Dentro del agrupamiento/);
   assert.match(html,/Historia/);
   assert.match(html,/1\/20 · 5%/);
   assert.match(html,/1\/8 · 12\.5%/);
 });
 
-test('V94 taller tambien tiene doble denominador y troncal prioriza nivel',()=>{
+test('V97 taller tiene doble referencia y troncal solo referencia anual',()=>{
   const api=loadPlanCoverage();
   assert.equal(api.dualSpace({type:'taller'}),true);
   assert.equal(api.dualSpace({type:'laboratorio'}),true);
   assert.equal(api.dualSpace({type:'troncal'}),false);
   const plan={contentIds:['h1','g1']};
-  assert.match(api.planCoverageSummary({type:'taller',year:1},plan,true),/Dentro del taller/);
-  assert.equal(api.planCoverageSummary({type:'troncal',year:1},plan,true).includes('Dentro del'),false);
+  assert.match(api.planCoverageSummary({type:'taller',year:1},plan,true),/Dentro del agrupamiento/);
+  assert.equal(api.planCoverageSummary({type:'troncal',year:1},plan,true).includes('Dentro del agrupamiento'),false);
 });
 
-test('V94 muestra cobertura por materia directamente en las tarjetas reales de planes',()=>{
+test('V97 muestra cobertura por materia directamente en las tarjetas reales de planes',()=>{
   const source=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
   for(const needle of [
     'planCoverageSummary(g,p,true)',
     'v95-coverage-table',
     'v95-coverage-line',
-    'Aporte al',
-    'Dentro del',
-    'Los valores muestran contenidos usados/total y porcentaje'
+    'Cobertura por materia',
+    'Del anual',
+    'Dentro del agrupamiento',
+    'La cobertura se lee materia por materia'
   ]) assert.ok(source.includes(needle),needle);
 });
 
@@ -136,9 +141,9 @@ test('V94 mantiene responsive de planes en una columna y reserva espacio inferio
   assert.ok(workspace.includes('v94-plan-actions'));
 });
 
-test('V94 panel macro y detalle V91 muestran absolutos mas porcentaje',()=>{
+test('V97 panel y detalle muestran absolutos mas porcentaje por materia',()=>{
   const v91=fs.readFileSync('src/v91-plans-coverage.js','utf8');
   const dashboard=fs.readFileSync('src/v93-curricular-coverage-dashboard.js','utf8');
-  for(const needle of ['Number(result.used||0)','Number(result.total)','x.used','x.total','x.percent'])assert.ok(v91.includes(needle),needle);
-  for(const needle of ['Number(r.used||0)','Number(r.total)','x.used','x.total','x.percent'])assert.ok(dashboard.includes(needle),needle);
+  for(const needle of ['Number(x.used||0)','Number(x.total||0)','Number(x.percent||0)','Materia'])assert.ok(v91.includes(needle),needle);
+  for(const needle of ['Number(x.used||0)','Number(x.total||0)','Number(x.percent||0)','Cobertura anual por materia'])assert.ok(dashboard.includes(needle),needle);
 });
