@@ -8,13 +8,17 @@
   const subjectAliases=new Map([
     ['formacion etica ciudadana','formacion etica y ciudadana'],
     ['educacion artistica artes visuales','artes visuales'],
-    ['tecnologia de la informacion','tecnologias de la informacion']
+    ['tecnologia de la informacion','tecnologias de la informacion'],
+    ['lengua adicional','lenguas adicionales'],
+    ['lenguas adicional','lenguas adicionales']
   ]);
   const subjectKey=v=>{
     const k=norm(v).replace(/\by\b/g,' y ').replace(/\s+/g,' ').trim();
     return subjectAliases.get(k)||k;
   };
   const areaKey=v=>norm(v);
+  const uniqueRows=list=>[...new Map((list||[]).filter(Boolean).map(x=>[String(x.id),x])).values()];
+  const ratio=(used,total)=>Number(total)?Math.round(Number(used||0)/Number(total)*1000)/10:null;
 
   async function load(){
     if(rows)return rows;
@@ -37,9 +41,9 @@
   }
 
   function phase(){return window.PCIPhase2V28}
+  function memberRows(group){return phase()?.members?.(group)||[]}
   function memberSubjects(group){
-    const members=phase()?.members?.(group)||[];
-    return [...new Set(members.map(x=>String(x?.name||'').trim()).filter(Boolean))];
+    return [...new Set(memberRows(group).map(x=>String(x?.name||'').trim()).filter(Boolean))];
   }
   function areaForGroup(group){return String(group?.area||'').trim()}
 
@@ -49,13 +53,33 @@
     return rows.filter(x=>x.year===Number(year)&&x._area===ak);
   }
 
-  // V93: el 100 % del espacio ya no depende de las materias que el espacio
-  // seleccionó. Para FG es siempre el universo prescripto del agrupamiento
-  // (área) en ese año/nivel.
+  function rowsForMember(group,member,levelUniverse){
+    const key=subjectKey(member?.name);
+    if(!key)return[];
+    const exact=levelUniverse.filter(x=>x._subject===key);
+    if(exact.length)return exact;
+
+    // Algunos mapas expresan una familia curricular como una sola materia
+    // (por ejemplo "Artes"). En ese caso, si no existe una materia exacta
+    // en la base, se usa el universo del área de ese nivel.
+    if(key==='artes'||areaKey(member?.name)===areaKey(group?.area))return levelUniverse;
+    return[];
+  }
+
+  // V97: el universo de un agrupamiento se define por las materias FG que
+  // efectivamente lo conforman en el Mapa de la Oferta y por el nivel.
   function universeForGroup(group){
     if(!group)return[];
     if(areaForGroup(group)==='Formación Orientada')return foLevelUniverse(group);
-    return universeForLevel(areaForGroup(group),group.year);
+    const levelUniverse=universeForLevel(areaForGroup(group),group.year);
+    const fgMembers=memberRows(group).filter(x=>x?.origin==='FG');
+    if(!fgMembers.length)return levelUniverse;
+    const selected=uniqueRows(fgMembers.flatMap(member=>rowsForMember(group,member,levelUniverse)));
+    return selected.length?selected:levelUniverse;
+  }
+
+  function universeForGroups(groups=[]){
+    return uniqueRows((groups||[]).flatMap(g=>universeForGroup(g)));
   }
 
   function matchesContent(content,candidate){
@@ -105,23 +129,23 @@
       }
     }
     return [...map.values()].map(x=>{
-      x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
-      x.axes=[...x.axes.values()].map(a=>({...a,percent:a.total?Math.round(a.used/a.total*1000)/10:0}))
+      x.percent=x.total?ratio(x.used,x.total):0;
+      x.axes=[...x.axes.values()].map(a=>({...a,percent:a.total?ratio(a.used,a.total):0}))
         .sort((a,b)=>a.axis.localeCompare(b.axis,'es'));
       return x;
     }).sort((a,b)=>a.label.localeCompare(b.label,'es'));
   }
 
-  function fgCoverageForIds(group,ids=[]){
-    const universe=universeForGroup(group);
-    const universeIds=new Set(universe.map(x=>x.id));
+  function fgCoverageAgainstUniverse(group,ids=[],universe=[]){
+    universe=uniqueRows(universe);
+    const universeIds=new Set(universe.map(x=>String(x.id)));
     const used=new Map(),offLevel=new Set(),unmatched=new Set();
 
-    for(const id of [...new Set(ids||[])]){
+    for(const id of [...new Set((ids||[]).map(String))]){
       const content=phase()?.findContent?.(id);
       if(!content||content.component!=='FG')continue;
-      const target=canonicalForContent(content,group?.year).filter(x=>universeIds.has(x.id));
-      if(target.length){target.forEach(x=>used.set(x.id,x));continue}
+      const target=canonicalForContent(content,group?.year).filter(x=>universeIds.has(String(x.id)));
+      if(target.length){target.forEach(x=>used.set(String(x.id),x));continue}
       const other=canonicalForContent(content,null).filter(x=>x.year!==Number(group?.year));
       if(other.length)offLevel.add(id);else unmatched.add(id);
     }
@@ -133,16 +157,20 @@
       bySubject[key].total++;
     }
     for(const row of used.values()){const x=bySubject[row.subject];if(x)x.used++}
-    for(const x of Object.values(bySubject))x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
+    for(const x of Object.values(bySubject))x.percent=x.total?ratio(x.used,x.total):0;
 
     return {
       basis:'level',component:'FG',area:areaForGroup(group),year:Number(group?.year)||0,
       total:universe.length,used:used.size,
-      percent:universe.length?Math.round(used.size/universe.length*1000)/10:0,
+      percent:universe.length?ratio(used.size,universe.length):0,
       bySubject:Object.values(bySubject).sort((a,b)=>a.subject.localeCompare(b.subject,'es')),
       byComponent:[],offLevel:offLevel.size,unmatched:unmatched.size,
       universe,usedRows:[...used.values()]
     };
+  }
+
+  function fgCoverageForIds(group,ids=[]){
+    return fgCoverageAgainstUniverse(group,ids,universeForGroup(group));
   }
 
   function foCoverageForIds(group,ids=[]){
@@ -160,7 +188,7 @@
         byComponent:foBreakdown(pool,usedPool),offLevel:0,unmatched:requested.filter(id=>!poolIds.has(id)).length,
         universe:[],usedRows:[],
         trajectoryTotal:pool.length,trajectoryUsed:usedPool.size,
-        trajectoryPercent:pool.length?Math.round(usedPool.size/pool.length*1000)/10:0,
+        trajectoryPercent:pool.length?ratio(usedPool.size,pool.length):0,
         levelBasisAvailable:false
       };
     }
@@ -170,7 +198,7 @@
     return {
       basis:'level',component:'FO',area:'Formación Orientada',year:Number(group?.year)||0,
       total:levelUniverse.length,used:used.size,
-      percent:levelUniverse.length?Math.round(used.size/levelUniverse.length*1000)/10:0,
+      percent:levelUniverse.length?ratio(used.size,levelUniverse.length):0,
       bySubject:[],byComponent:foBreakdown(levelUniverse,used),
       offLevel:offLevel.size,unmatched:requested.filter(id=>!poolIds.has(id)).length,
       universe:levelUniverse,usedRows:levelUniverse.filter(x=>used.has(String(x.id))),
@@ -182,16 +210,23 @@
     return areaForGroup(group)==='Formación Orientada'?foCoverageForIds(group,ids):fgCoverageForIds(group,ids);
   }
 
-  const unionIds=groups=>[...new Set((groups||[]).flatMap(g=>g?.data?.contents||[]))];
+  const unionIds=groups=>[...new Set((groups||[]).flatMap(g=>g?.data?.contents||[]).map(String))];
 
+  function coverageForGroups(group,groups=[]){
+    if(areaForGroup(group)==='Formación Orientada')return coverageForIds(group,unionIds(groups));
+    return fgCoverageAgainstUniverse(group,unionIds(groups),universeForGroups(groups));
+  }
+
+  // Cobertura anual por materia y nivel. La unión evita contar dos veces un
+  // contenido que aparezca en C1/C2, en varios laboratorios o en varios planes.
   function groupingLevelCoverage(group,allGroups=[]){
     const relevant=(allGroups||[]).filter(g=>g&&g.area===group?.area&&Number(g.year)===Number(group?.year));
-    return coverageForIds(group,unionIds(relevant));
+    return coverageForGroups(group,relevant);
   }
 
   function formatTypeCoverage(group,allGroups=[]){
     const relevant=(allGroups||[]).filter(g=>g&&g.area===group?.area&&Number(g.year)===Number(group?.year)&&g.type===group?.type);
-    return coverageForIds(group,unionIds(relevant));
+    return coverageForGroups(group,relevant);
   }
 
   function trajectoryCoverage(area,allGroups=[]){
@@ -200,7 +235,7 @@
       const pool=foPool(),used=new Set(unionIds(relevant).map(String).filter(id=>pool.some(x=>String(x.id)===id)));
       return {
         basis:'trajectory',component:'FO',area,total:pool.length,used:used.size,
-        percent:pool.length?Math.round(used.size/pool.length*1000)/10:0,
+        percent:pool.length?ratio(used.size,pool.length):0,
         bySubject:[],byComponent:foBreakdown(pool,used)
       };
     }
@@ -210,7 +245,7 @@
       for(const id of [...new Set(g?.data?.contents||[])]){
         const content=phase()?.findContent?.(id);
         if(!content||content.component!=='FG')continue;
-        canonicalForContent(content,g.year).filter(x=>x._area===areaKey(area)).forEach(x=>used.set(x.id,x));
+        canonicalForContent(content,g.year).filter(x=>x._area===areaKey(area)).forEach(x=>used.set(String(x.id),x));
       }
     }
     const bySubject={};
@@ -219,22 +254,80 @@
       bySubject[row.subject].total++;
     }
     for(const row of used.values()){if(bySubject[row.subject])bySubject[row.subject].used++}
-    for(const x of Object.values(bySubject))x.percent=x.total?Math.round(x.used/x.total*1000)/10:0;
+    for(const x of Object.values(bySubject))x.percent=x.total?ratio(x.used,x.total):0;
     return {
       basis:'trajectory',component:'FG',area,total:universe.length,used:used.size,
-      percent:universe.length?Math.round(used.size/universe.length*1000)/10:0,
+      percent:universe.length?ratio(used.size,universe.length):0,
       bySubject:Object.values(bySubject).sort((a,b)=>a.subject.localeCompare(b.subject,'es')),byComponent:[]
     };
   }
 
   function formatCoverage(group){return coverageForIds(group,group?.data?.contents||[])}
+
+  function planCoverage(group,ids=[]){
+    const annual=coverageForIds(group,ids);
+    const grouping=formatCoverage(group);
+    const dual=['laboratorio','taller'].includes(String(group?.type||'').toLowerCase());
+    const basisLabel=annual?.basis==='trajectory'?'Trayectoria':`Nivel ${Number(group?.year)||''}`;
+
+    const groupingSubjects=new Map((grouping.bySubject||[]).map(x=>[subjectKey(x.subject),x]));
+    const subjectRows=(annual.bySubject||[]).map(x=>{
+      const g=groupingSubjects.get(subjectKey(x.subject))||{used:0};
+      const groupingTotal=Number(g.used||0);
+      return {
+        label:x.subject,kind:'Materia',
+        planUsed:Number(x.used||0),
+        annualTotal:Number(x.total||0),
+        annualPercent:Number(x.percent||0),
+        groupingTotal,
+        groupingPercent:groupingTotal?ratio(x.used,groupingTotal):null,
+        axes:[]
+      };
+    });
+
+    const groupingComponents=new Map((grouping.byComponent||[]).map(x=>[String(x.label),x]));
+    const componentRows=(annual.byComponent||[]).map(x=>{
+      const g=groupingComponents.get(String(x.label))||{used:0,axes:[]};
+      const groupingTotal=Number(g.used||0);
+      const gAxes=new Map((g.axes||[]).map(a=>[String(a.axis),a]));
+      return {
+        label:x.label,kind:x.kind||'Componente',
+        planUsed:Number(x.used||0),
+        annualTotal:Number(x.total||0),
+        annualPercent:Number(x.percent||0),
+        groupingTotal,
+        groupingPercent:groupingTotal?ratio(x.used,groupingTotal):null,
+        axes:(x.axes||[]).map(a=>{
+          const ga=gAxes.get(String(a.axis))||{used:0};
+          const gt=Number(ga.used||0);
+          return {
+            label:a.axis,planUsed:Number(a.used||0),annualTotal:Number(a.total||0),
+            annualPercent:Number(a.percent||0),groupingTotal:gt,
+            groupingPercent:gt?ratio(a.used,gt):null
+          };
+        })
+      };
+    });
+
+    return {
+      annual,grouping,dual,basisLabel,
+      rows:subjectRows.length?subjectRows:componentRows,
+      bySubject:subjectRows,byComponent:componentRows,
+      level:annual,space:grouping,
+      levelUsed:Number(annual.total)?Number(annual.used||0):Number(annual.trajectoryUsed||annual.used||0),
+      levelTotal:Number(annual.total)||Number(annual.trajectoryTotal||0),
+      spaceUsed:Number(grouping.used||0)
+    };
+  }
+
   async function ready(){await load();return api}
 
   const api={
     ready,load,rows:()=>rows||[],normalize:norm,subjectKey,memberSubjects,areaForGroup,
-    universeForLevel,universeForGroup,canonicalForContent,coverageForIds,formatCoverage,
-    groupingLevelCoverage,formatTypeCoverage,trajectoryCoverage,foHasYear,foPool,foBreakdown
+    universeForLevel,universeForGroup,universeForGroups,canonicalForContent,coverageForIds,formatCoverage,
+    groupingLevelCoverage,formatTypeCoverage,trajectoryCoverage,planCoverage,
+    foHasYear,foPool,foBreakdown
   };
   window.PCICoverageV91=api;
-  window.addEventListener('pci-app-ready',()=>ready().catch(e=>console.error('[V91 coverage]',e)));
+  window.addEventListener('pci-app-ready',()=>ready().catch(e=>console.error('[V97 coverage]',e)));
 })();
