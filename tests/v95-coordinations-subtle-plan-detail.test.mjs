@@ -136,10 +136,11 @@ test('V95 Asignacion a espacios incluye coordinaciones sin sumar una tarjeta nue
 test('V95 detalle de cobertura permanece visible pero usa filas sutiles',()=>{
   const source=fs.readFileSync('src/v38-phase2-workspace.js','utf8');
   for(const needle of [
-    'v95-plan-kpis',
+    'v95-coverage-rule',
     'v95-coverage-table',
     'v95-coverage-line',
     'Materia / componente',
+    'Dentro del agrupamiento',
     'planCoverageSummary(g,p,true)'
   ]) assert.ok(source.includes(needle),needle);
   assert.equal(source.includes('v94-subjects'),false);
