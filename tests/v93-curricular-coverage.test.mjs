@@ -176,6 +176,19 @@ test('V98 reorganiza solo el panel general con filtros y desplegables',()=>{
   assert.ok(spaces.includes('v97-group-coverage'));
 });
 
+
+test('V99 el panel despliega planes por agrupamiento y es imprimible',()=>{
+  const source=fs.readFileSync('src/v93-curricular-coverage-dashboard.js','utf8');
+  for(const needle of [
+    'Planes del agrupamiento',
+    'planCoverage?.(g,p?.contentIds',
+    'id="v99dPrint"',
+    'function printPanel()',
+    'Imprimir / Guardar PDF',
+    'los porcentajes de los planes no se suman entre sí'
+  ]) assert.ok(source.includes(needle),needle);
+});
+
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
