@@ -212,7 +212,7 @@ test('V105 no mezcla FG y FO ni en porcentaje ni en bolsa',()=>{
     "source=a==='Formación Orientada'?'FO':'FG'",
     "c=>c.component===source",
     "Formación General</button>",
-    "${state.active}</button>"
+    'data-src="FO"'
   ]) assert.ok(source.includes(needle),needle);
   assert.equal(source.includes('data-src="ALL"'),false);
   assert.equal(source.includes("source='ALL'"),false);
