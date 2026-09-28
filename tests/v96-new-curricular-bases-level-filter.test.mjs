@@ -76,11 +76,11 @@ test('V103 Bolsa curricular muestra Nivel y encadena Nivel Materia Eje/Núcleo S
   ]) assert.ok(source.includes(needle),needle);
 });
 
-test('V96 impide asignar Formación General a otro nivel',()=>{
+test('V106 permite mezclar contenidos FG de distintos niveles dentro de la misma área',()=>{
   const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
-  assert.ok(source.includes("Number(c.year)!==Number(g.year)"));
-  assert.ok(source.includes('Este contenido corresponde a'));
-  assert.ok(source.includes('el espacio es de'));
+  assert.ok(source.includes("if(c.component!=='FG'||c.area!==g.area)return false;"));
+  assert.equal(source.includes("Number(c.year)!==Number(g.year)"),false);
+  assert.equal(source.includes('Este contenido corresponde a'),false);
 });
 
 test('V96 cobertura consume el mismo catálogo FG de la bolsa',()=>{
