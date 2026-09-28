@@ -219,6 +219,19 @@ test('V105 no mezcla FG y FO ni en porcentaje ni en bolsa',()=>{
   assert.equal(source.includes("FG + ${foCount}"),false);
 });
 
+
+test('V106 permite asignar FG de otros niveles pero la cobertura solo cuenta el nivel del espacio',async()=>{
+  const matrix=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
+  assert.ok(matrix.includes("if(c.component!=='FG'||c.area!==g.area)return false;"));
+  assert.equal(matrix.includes("Number(c.year)!==Number(g.year)"),false);
+
+  const {api,groups}=await harness();
+  const r=api.coverageForIds(groups[0],['c1','c5']);
+  assert.equal(r.used,1);
+  assert.equal(r.offLevel,1);
+  assert.equal(r.percent,33.3);
+});
+
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
