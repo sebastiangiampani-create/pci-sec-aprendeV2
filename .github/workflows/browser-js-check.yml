@@ -79,13 +79,13 @@ jobs:
           }
           const zlib=require('zlib');
           const fgFiles=Array.from({length:9},(_,i)=>`fg-all-p${i+1}.txt`);
-          const fgEncoded=fgFiles.map(x=>fs.readFileSync('data/curriculum_v96/'+x,'utf8').trim()).join('');
+          const fgEncoded=fgFiles.map(x=>fs.readFileSync('data/curriculum_v103/'+x,'utf8').trim()).join('');
           const fg=JSON.parse(zlib.gunzipSync(Buffer.from(fgEncoded,'base64')).toString('utf8'));
-          if(fg.length!==979)throw new Error(`Base FG V96 incorrecta: ${fg.length}`);
+          if(fg.length!==1126)throw new Error(`Base FG V103 incorrecta: ${fg.length}`);
           const tutor=fg.filter(x=>x.subject==='Tutoría');
-          if(tutor.length!==19||tutor.some(x=>![1,2].includes(Number(x.year))))throw new Error('Tutoría debe existir solo en 1.º y 2.º.');
+          if(tutor.length!==24||tutor.some(x=>![1,2].includes(Number(x.year))))throw new Error('Tutoría V103 debe tener 24 contenidos solo en 1.º y 2.º.');
           const byYear=Object.fromEntries([1,2,3,4,5].map(y=>[y,fg.filter(x=>Number(x.year)===y).length]));
-          if(JSON.stringify(byYear)!==JSON.stringify({1:218,2:205,3:217,4:198,5:141}))throw new Error('Totales FG por nivel incorrectos: '+JSON.stringify(byYear));
+          if(JSON.stringify(byYear)!==JSON.stringify({1:253,2:241,3:257,4:217,5:158}))throw new Error('Totales FG V103 por nivel incorrectos: '+JSON.stringify(byYear));
           const foFiles=['fo_all.txt',...Array.from({length:10},(_,i)=>`fo_part${String(i+2).padStart(2,'0')}.txt`)];
           const foEncoded=foFiles.map(x=>fs.readFileSync('data/curriculum_v96/'+x,'utf8').trim()).join('');
           const foRaw=JSON.parse(zlib.gunzipSync(Buffer.from(foEncoded,'base64')).toString('utf8'));
@@ -96,7 +96,7 @@ jobs:
           const historia=fo.filter(x=>/historia.*orientad/i.test(String(x[2]||''))).length;
           const tecnologia=fo.filter(x=>/tecnolog/i.test(String(x[2]||''))).length;
           if(historia!==98||tecnologia!==91)throw new Error(`Historia/Tecnología FO incorrectas: ${historia}/${tecnologia}`);
-          console.log(`OK bases V96: FG ${fg.length} · FO ${fo.length}`);
+          console.log(`OK bases: FG V103 ${fg.length} · FO V96 ${fo.length}`);
           NODE
 
       - name: Check protected PCI core remains wired
