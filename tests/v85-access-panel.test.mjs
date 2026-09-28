@@ -43,3 +43,14 @@ test('V95 coordinaciones se originan en Gestion y el acceso consume esos permiso
   assert.match(management,/Coordinación de orientación/);
   assert.doesNotMatch(management,/Otros formatos pedagógicos/);
 });
+
+
+test('V101 la sesion queda en flujo y no tapa el contenido al desplegarse',()=>{
+  const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
+  assert.match(panel,/v101SessionHost/);
+  assert.match(panel,/sessionHost\(\)\.appendChild\(profileChip\)/);
+  assert.match(panel,/\.v101-session-host\{position:relative/);
+  assert.match(panel,/\.v91-profile\{position:relative/);
+  assert.doesNotMatch(panel,/\.v91-profile\{position:fixed/);
+  assert.doesNotMatch(panel,/bottom:calc\(82px/);
+});
