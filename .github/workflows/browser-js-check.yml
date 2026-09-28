@@ -60,7 +60,7 @@ jobs:
           const checks={
             'src/v47-phase2-matrix.js':['canEditGroup','editableSubjectsByOrientation','pci-phase2-groups-rendered','id="v28level"','loadCurriculum','subaxis','Trayectoria orientada'],
             'src/v80-access-control.js':['teacherEditSubjectsByOrientation','editableSubjectsByOrientation','coordinatorOrientation'],
-            'src/v85-access-panel.js':['cargoSummary','v91-profile-menu','Ingresar con coordinaciones de Gestión','coordinatorOptions'],
+            'src/v85-access-panel.js':['cargoSummary','v102-profile-head','Ingresar con coordinaciones de Gestión','coordinatorOptions','.institutional-ba'],
             'src/v91-coverage-core.js':['universeForGroup','universeForGroups','coverageForIds','planCoverage','offLevel','formatCoverage'],
             'src/v91-plans-coverage.js':['Cobertura del agrupamiento','Cobertura anual del espacio','Cada materia se coteja','formatCoverage','v97-group-coverage'],
             'src/v93-curricular-coverage-dashboard.js':['Panel de cobertura curricular','Cobertura anual por materia','groupingLevelCoverage','formatCoverage','Agrupamientos del nivel','valueMetric'],

@@ -45,12 +45,13 @@ test('V95 coordinaciones se originan en Gestion y el acceso consume esos permiso
 });
 
 
-test('V101 la sesion queda en flujo y no tapa el contenido al desplegarse',()=>{
+test('V102 integra el perfil al header junto al logo BA',()=>{
   const panel=fs.readFileSync('src/v85-access-panel.js','utf8');
-  assert.match(panel,/v101SessionHost/);
-  assert.match(panel,/sessionHost\(\)\.appendChild\(profileChip\)/);
-  assert.match(panel,/\.v101-session-host\{position:relative/);
-  assert.match(panel,/\.v91-profile\{position:relative/);
-  assert.doesNotMatch(panel,/\.v91-profile\{position:fixed/);
-  assert.doesNotMatch(panel,/bottom:calc\(82px/);
+  assert.match(panel,/header\.top \.row/);
+  assert.match(panel,/\.institutional-ba/);
+  assert.match(panel,/insertAdjacentElement\('afterend',profileChip\)/);
+  assert.match(panel,/v102-profile-head/);
+  assert.match(panel,/Cambiar perfil/);
+  assert.doesNotMatch(panel,/v101SessionHost/);
+  assert.doesNotMatch(panel,/sessionHost\(\)/);
 });

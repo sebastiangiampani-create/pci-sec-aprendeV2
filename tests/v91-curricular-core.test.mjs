@@ -62,12 +62,14 @@ test('V97 cobertura visible no duplica el sistema real de planes',()=>{
   assert.ok(plans.includes('Dentro del agrupamiento'));
 });
 
-test('V91 perfil muestra cargos reales y asignaciones',()=>{
+test('V102 perfil conserva cargos y asignaciones y se integra al header',()=>{
   const source=fs.readFileSync('src/v85-access-panel.js','utf8');
   assert.ok(source.includes("cargoSummary"));
   assert.ok(source.includes("cargoLabel"));
-  assert.ok(source.includes("v91-profile-menu"));
   assert.ok(source.includes("root.assignments"));
+  assert.ok(source.includes("v102-profile-head"));
+  assert.ok(source.includes(".institutional-ba"));
+  assert.equal(source.includes("v91-profile-menu"),false);
 });
 
 test('V91 docente edita solo grupos vinculados a materia y nivel asignados',()=>{
