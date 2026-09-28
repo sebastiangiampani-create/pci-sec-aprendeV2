@@ -128,11 +128,11 @@ test('V94 restaura botones Volver y hace visible el navegador flotante sobre mod
   assert.ok(nav.includes('env(safe-area-inset-bottom'));
 });
 
-test('V101 evita que el perfil movil tape planes y dock integrandolo al flujo',()=>{
+test('V102 el perfil movil queda compacto dentro del header',()=>{
   const profile=fs.readFileSync('src/v85-access-panel.js','utf8');
-  assert.ok(profile.includes('v101-session-host'));
-  assert.ok(profile.includes('.v91-profile{position:relative'));
-  assert.ok(profile.includes('.v101-session-host{padding:8px 10px 0;justify-content:stretch}'));
+  assert.ok(profile.includes('v102-profile-head'));
+  assert.ok(profile.includes('max-width:210px'));
+  assert.ok(profile.includes('.v91-profile.v102-profile-head .v91-profile-copy em{display:none}'));
   assert.equal(profile.includes('bottom:calc(82px + env(safe-area-inset-bottom,0px))'),false);
 });
 
