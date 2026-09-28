@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 
 function decodeFg(){
-  const files=Array.from({length:9},(_,i)=>`data/curriculum_v96/fg-all-p${i+1}.txt`);
+  const files=Array.from({length:9},(_,i)=>`data/curriculum_v103/fg-all-p${i+1}.txt`);
   const encoded=files.map(f=>fs.readFileSync(f,'utf8').trim()).join('');
   return JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
 }
@@ -14,21 +14,21 @@ function decodeFo(){
   return JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
 }
 
-test('V96 Formación General usa 979 contenidos y Tutoría solo 1º y 2º',()=>{
+test('V103 Formación General usa 1126 contenidos y Tutoría solo 1º y 2º',()=>{
   const fg=decodeFg();
-  assert.equal(fg.length,979);
+  assert.equal(fg.length,1126);
   const byYear=Object.fromEntries([1,2,3,4,5].map(y=>[y,fg.filter(x=>Number(x.year)===y).length]));
-  assert.deepEqual(byYear,{1:218,2:205,3:217,4:198,5:141});
+  assert.deepEqual(byYear,{1:253,2:241,3:257,4:217,5:158});
   const tutor=fg.filter(x=>x.subject==='Tutoría');
-  assert.equal(tutor.length,19);
+  assert.equal(tutor.length,24);
   assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
   assert.equal(tutor.some(x=>Number(x.year)>=3),false);
 });
 
-test('V96 Formación General conserva año materia eje subeje y contenido',()=>{
+test('V103 Formación General conserva año materia eje/núcleo subeje y contenido',()=>{
   const fg=decodeFg();
   for(const row of fg){
-    assert.ok(String(row.id).startsWith('fgv96:'));
+    assert.ok(String(row.id).startsWith('fgv103:'));
     assert.ok(Number(row.year)>=1&&Number(row.year)<=5);
     assert.ok(String(row.area).trim());
     assert.ok(String(row.subject).trim());
@@ -67,12 +67,12 @@ test('V96 Formación Orientada usa 860 contenidos únicos e incluye Historia y T
   assert.ok(fo.every(x=>String(x[0]||'').trim()&&String(x[2]||'').trim()&&String(x[3]||'').trim()&&String(x[5]||'').trim()));
 });
 
-test('V96 Bolsa curricular muestra Nivel y encadena Nivel Materia Eje Subeje',()=>{
+test('V103 Bolsa curricular muestra Nivel y encadena Nivel Materia Eje/Núcleo Subeje',()=>{
   const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
   for(const needle of [
     'id="v28level"','<span>Nivel</span>','Buscar por nivel, contenido, materia, eje o subeje',
     'const atLevel=base.filter','const atSubject=atLevel.filter','const atAxis=atSubject.filter',
-    'id="v28subaxis"','<span>Subeje</span>','contentMeta(c)','Trayectoria orientada'
+    'id="v28subaxis"','<span>Subeje</span>','Eje / núcleo / bloque','contentMeta(c)','Trayectoria orientada'
   ]) assert.ok(source.includes(needle),needle);
 });
 
@@ -98,13 +98,16 @@ test('V96 Tutoría legacy deja de estar activa',()=>{
   assert.ok(app.includes('loadCurriculum'));
 });
 
-test('V96 manifiesto documenta 979 FG y 860 FO',()=>{
-  const manifest=JSON.parse(fs.readFileSync('data/curriculum_v96/manifest.json','utf8'));
-  assert.equal(manifest.fgCount,979);
-  assert.equal(manifest.foCount,860);
-  assert.equal(manifest.historiaOrientadaCount,98);
-  assert.equal(manifest.tecnologiasInformacionOrientadaCount,91);
-  assert.deepEqual(manifest.tutoria.includedYears,[1,2]);
-  assert.equal(manifest.historiaYTecnologiaIncludedInFo,true);
-  assert.equal(manifest.foHasExplicitYear,false);
+test('V103 manifiesto documenta la extracción desde el DOCX revisado',()=>{
+  const manifest=JSON.parse(fs.readFileSync('data/curriculum_v103/manifest.json','utf8'));
+  assert.equal(manifest.version,'20260928-103');
+  assert.equal(manifest.fgCount,1126);
+  assert.deepEqual(manifest.byYear,{1:253,2:241,3:257,4:217,5:158});
+  assert.equal(manifest.subjectCount,19);
+  assert.equal(manifest.yearSectionCount,55);
+  assert.deepEqual(manifest.tutoria,{includedYears:[1,2],count:24});
+  assert.equal(manifest.fullRowDuplicates,0);
+  assert.match(manifest.extractionRule,/comienza con • es un contenido/);
+  assert.ok(manifest.notes.some(x=>x.includes('No se atomiza')));
+  assert.ok(manifest.notes.some(x=>x.includes('Formación Orientada continúa usando la base V96')));
 });

@@ -24,15 +24,16 @@ test('V91 mantiene la base curricular y de gestion sin reactivar modulos retirad
   assert.equal(management.includes("key:'equipos'"),false);
 });
 
-test('V96 base FG tiene 979 contenidos y Tutoría solo en primero y segundo',()=>{
-  const files=Array.from({length:9},(_,i)=>`data/curriculum_v96/fg-all-p${i+1}.txt`);
+test('V103 base FG revisada tiene 1126 contenidos y Tutoría solo en primero y segundo',()=>{
+  const files=Array.from({length:9},(_,i)=>`data/curriculum_v103/fg-all-p${i+1}.txt`);
   const encoded=files.map(x=>fs.readFileSync(x,'utf8').trim()).join('');
   const rows=JSON.parse(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString('utf8'));
-  assert.equal(rows.length,979);
+  assert.equal(rows.length,1126);
   assert.ok(rows.every(x=>Number(x.year)>=1&&Number(x.year)<=5&&x.subject&&x.text));
   assert.deepEqual([...new Set(rows.map(x=>Number(x.year)))].sort(),[1,2,3,4,5]);
+  assert.deepEqual(Object.fromEntries([1,2,3,4,5].map(y=>[y,rows.filter(x=>Number(x.year)===y).length])),{1:253,2:241,3:257,4:217,5:158});
   const tutor=rows.filter(x=>x.subject==='Tutoría');
-  assert.equal(tutor.length,19);
+  assert.equal(tutor.length,24);
   assert.deepEqual([...new Set(tutor.map(x=>Number(x.year)))].sort(),[1,2]);
 });
 
