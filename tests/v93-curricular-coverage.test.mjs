@@ -202,16 +202,21 @@ test('V100 la barra general despliega la cobertura completa por nivel',()=>{
 });
 
 
-test('V104 no mezcla FG y FO en el porcentaje general de un área articulada',()=>{
+test('V105 no mezcla FG y FO ni en porcentaje ni en bolsa',()=>{
   const source=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
   for(const needle of [
     "componentCoverage(a,'FG')",
     "componentCoverage(a,'FO')",
     "contenidos de Formación General cubiertos",
     "Se muestran aparte y no se suman a este porcentaje.",
-    "contenidos de ${state.active}",
-    "FG + ${foCount}"
+    "source=a==='Formación Orientada'?'FO':'FG'",
+    "c=>c.component===source",
+    "Formación General</button>",
+    "${state.active}</button>"
   ]) assert.ok(source.includes(needle),needle);
+  assert.equal(source.includes('data-src="ALL"'),false);
+  assert.equal(source.includes("source='ALL'"),false);
+  assert.equal(source.includes("FG + ${foCount}"),false);
 });
 
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
