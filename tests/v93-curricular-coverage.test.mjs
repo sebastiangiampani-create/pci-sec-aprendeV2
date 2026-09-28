@@ -163,6 +163,19 @@ test('V97 panel prioriza nivel, materia y agrupamientos sin repetir total de tra
   assert.equal(source.includes('Agrupamiento · trayectoria'),false);
 });
 
+
+test('V98 reorganiza solo el panel general con filtros y desplegables',()=>{
+  const source=fs.readFileSync('src/v93-curricular-coverage-dashboard.js','utf8');
+  for(const needle of [
+    'id="v98dArea"','id="v98dLevel"','id="v98dStatus"',
+    'Agrupamientos del nivel','<details class="v98d-grouping">',
+    '<details class="v98d-area"','renderResults','Limpiar'
+  ]) assert.ok(source.includes(needle),needle);
+  const spaces=fs.readFileSync('src/v91-plans-coverage.js','utf8');
+  assert.ok(spaces.includes('Cobertura del agrupamiento'));
+  assert.ok(spaces.includes('v97-group-coverage'));
+});
+
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
