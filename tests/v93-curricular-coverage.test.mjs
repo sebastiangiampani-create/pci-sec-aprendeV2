@@ -189,6 +189,18 @@ test('V99 el panel despliega planes por agrupamiento y es imprimible',()=>{
   ]) assert.ok(source.includes(needle),needle);
 });
 
+
+test('V100 la barra general despliega la cobertura completa por nivel',()=>{
+  const source=fs.readFileSync('src/v91-plans-coverage.js','utf8');
+  for(const needle of [
+    'Ver cobertura por nivel',
+    'Contenidos únicos del nivel, materia por materia.',
+    'groupingLevelCoverage',
+    'v100-level-breakdown',
+    'decorateAreaCoverage'
+  ]) assert.ok(source.includes(needle),needle);
+});
+
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
