@@ -296,7 +296,7 @@
       ? COORD_AREAS.includes(scope)
       : (state.selected||[]).map(x=>String(x||'').trim()).includes(scope);
     if(!validScope)return toast('El ámbito elegido no corresponde al tipo de coordinación.',true);
-    const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===teacherId&&x.kind===kind&&String(x.scope)===scope&&String(x.shift||'Sin especificar')===shift);
+    const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===String(teacherId)&&x.kind===kind&&String(x.scope)===String(scope)&&String(x.shift||'Sin especificar')===String(shift));
     if(duplicate)return toast('Esa coordinación ya está asignada con el mismo turno.',true);
     r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId,kind,scope,shift});
     save();render();toast('Coordinación asignada.');
