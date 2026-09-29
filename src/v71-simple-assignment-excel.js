@@ -8,6 +8,7 @@
     const r=state.institutional;
     r.teachers=r.teachers||{};
     r.assignments=r.assignments||{};
+    r.coordinations=Array.isArray(r.coordinations)?r.coordinations:[];
     return r;
   }
   const rows=()=>pci()?.allImplementationRows?.()||[];
@@ -15,6 +16,15 @@
   const slug=v=>norm(v).replace(/\s+/g,'-');
   const uid=()=>`doc-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
   const CARGO_OPTIONS=['TC · 36 HC','TP1 · 30 HC','TP2 · 24 HC','TP3 · 18 HC','TP4 · 12 HC','Por horas · ingresar HC'];
+  const COORDINATION_TYPES=['Área','Orientación'];
+  const COORDINATION_SHIFTS=['Sin especificar','Mañana','Tarde','Vespertino','Jornada completa'];
+  const COORDINATION_AREAS=['Lengua y Literatura','Matemática','Lenguas Adicionales','Ciencias Naturales','Ciencias Sociales','Artes','Tecnologías','Educación Física','Formación Orientada'];
+  function coordinationKind(value){
+    const v=norm(value);
+    if(v==='area'||v.includes('coordinacion de area'))return'area';
+    if(v==='orientacion'||v.includes('coordinacion de orientacion'))return'orientation';
+    return'';
+  }
   function cargoCode(value){
     const v=String(value||'').trim().toUpperCase();
     if(v.startsWith('TC'))return'TC';
@@ -78,6 +88,13 @@
 
       const catalog=wb.addWorksheet('CATALOGOS');
       CARGO_OPTIONS.forEach((x,i)=>catalog.getCell(i+1,1).value=x);
+      COORDINATION_TYPES.forEach((x,i)=>catalog.getCell(i+1,2).value=x);
+      COORDINATION_SHIFTS.forEach((x,i)=>catalog.getCell(i+1,3).value=x);
+      COORDINATION_AREAS.forEach((x,i)=>catalog.getCell(i+1,4).value=x);
+      const orientationCatalog=[...new Set((state.selected||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+      orientationCatalog.forEach((x,i)=>catalog.getCell(i+1,5).value=x);
+      const coordinationScopes=[...new Set([...COORDINATION_AREAS,...orientationCatalog])];
+      coordinationScopes.forEach((x,i)=>catalog.getCell(i+1,6).value=x);
       catalog.state='veryHidden';
 
       const plant=wb.addWorksheet('PLANTA DOCENTE');
@@ -121,7 +138,40 @@
       asg.getRow(1).font={bold:true};
       const maxPlant=Math.max(101,plant.rowCount);
       for(let r=2;r<=Math.max(2,asg.rowCount);r++){
-        asg.getCell(r,5).dataValidation={type:'list',allowBlank:true,formulae:[`'PLANTA DOCENTE'!$A$2:$A$${maxPlant}`],showErrorMessage:false};
+        asg.getCell(r,5).dataValidation={type:'list',allowBlank:true,formulae:[`'PLANTA DOCENTE'!$A$2:$A${maxPlant}`],showErrorMessage:false};
+      }
+
+      const coord=wb.addWorksheet('COORDINACIONES');
+      coord.columns=[
+        {header:'Docente',key:'teacher',width:30},
+        {header:'DNI docente',key:'dni',width:16},
+        {header:'Mail',key:'email',width:34},
+        {header:'Tipo de coordinación',key:'type',width:24},
+        {header:'Ámbito',key:'scope',width:32},
+        {header:'Turno',key:'shift',width:22}
+      ];
+      for(const c of root().coordinations||[]){
+        const t=root().teachers?.[c.teacherId];
+        if(!t)continue;
+        coord.addRow({
+          teacher:t.name||'',
+          dni:t.dni||'',
+          email:t.email||'',
+          type:c.kind==='orientation'?'Orientación':'Área',
+          scope:c.scope||'',
+          shift:c.shift||'Sin especificar'
+        });
+      }
+      while(coord.rowCount<101)coord.addRow({});
+      coord.views=[{state:'frozen',ySplit:1}];
+      coord.autoFilter={from:'A1',to:'F1'};
+      coord.getRow(1).font={bold:true};
+      const scopeMax=Math.max(1,coordinationScopes.length);
+      for(let r=2;r<=coord.rowCount;r++){
+        coord.getCell(r,1).dataValidation={type:'list',allowBlank:true,formulae:[`'PLANTA DOCENTE'!$A$2:$A${maxPlant}`],showErrorMessage:false};
+        coord.getCell(r,4).dataValidation={type:'list',allowBlank:true,formulae:["'CATALOGOS'!$B$1:$B$2"],showErrorMessage:true,errorTitle:'Tipo de coordinación',error:'Elegí Área u Orientación.'};
+        coord.getCell(r,5).dataValidation={type:'list',allowBlank:true,formulae:[`'CATALOGOS'!$F$1:$F${scopeMax}`],showErrorMessage:false};
+        coord.getCell(r,6).dataValidation={type:'list',allowBlank:true,formulae:["'CATALOGOS'!$C$1:$C$5"],showErrorMessage:true,errorTitle:'Turno',error:'Elegí un turno del desplegable.'};
       }
 
       const buffer=await wb.xlsx.writeBuffer();
@@ -190,10 +240,11 @@
     try{
       const XLSX=await loadXLSX(),buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array'});
       const r=root(),index=rowIndex();
-      let created=0,updated=0,assigned=0,skipped=0;
+      let created=0,updated=0,assigned=0,coordinations=0,skipped=0;
 
       const plantName=wb.SheetNames.find(n=>norm(n)==='planta docente');
       const assignmentName=wb.SheetNames.find(n=>norm(n)==='asignaciones'||norm(n)==='asignacion docente');
+      const coordinationName=wb.SheetNames.find(n=>norm(n)==='coordinaciones'||norm(n)==='coordinacion');
 
       if(plantName){
         const plantData=XLSX.utils.sheet_to_json(wb.Sheets[plantName],{defval:''});
@@ -231,10 +282,29 @@
         }
       }
 
+      if(coordinationName){
+        const coordinationData=XLSX.utils.sheet_to_json(wb.Sheets[coordinationName],{defval:''});
+        for(const raw of coordinationData){
+          const name=String(raw['Docente']||raw['Nombre y apellido']||'').trim();
+          const dni=String(raw['DNI docente']||raw['DNI']||'').trim();
+          const email=String(raw['Mail']||raw['Email']||'').trim();
+          const kind=coordinationKind(raw['Tipo de coordinación']||raw['Tipo']||'');
+          const scope=String(raw['Ámbito']||raw['Ambito']||raw['Área / Orientación']||raw['Area / Orientacion']||'').trim();
+          const shift=String(raw['Turno']||'Sin especificar').trim()||'Sin especificar';
+          if(!name&&!dni&&!email&&!kind&&!scope)continue;
+          const t=Object.values(r.teachers).find(x=>(dni&&String(x.dni||'')===dni)||(email&&norm(x.email)===norm(email))||(name&&norm(x.name)===norm(name)));
+          if(!t||!kind||!scope){skipped++;continue}
+          const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===String(t.id)&&x.kind===kind&&norm(x.scope)===norm(scope)&&norm(x.shift||'Sin especificar')===norm(shift));
+          if(duplicate)continue;
+          r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId:t.id,kind,scope,shift});
+          coordinations++;
+        }
+      }
+
       save();
       try{window.PCIAutoAreaCoincidenceV54?.deriveTeams?.()}catch(e){console.warn('V71 deriveTeams',e)}
-      setImportUi(`<strong>${created}</strong> docentes nuevos · <strong>${updated}</strong> actualizados · <strong>${assigned}</strong> asignaciones cargadas${skipped?` · ${skipped} filas no identificadas`:''}.<br><span>Primero se cargó la planta/cargo y después las asignaciones frente a curso.</span>`,'ok');
-      toast(`Planta importada: ${created+updated} docentes · ${assigned} asignaciones.`);
+      setImportUi(`<strong>${created}</strong> docentes nuevos · <strong>${updated}</strong> actualizados · <strong>${assigned}</strong> asignaciones · <strong>${coordinations}</strong> coordinaciones cargadas${skipped?` · ${skipped} filas no identificadas`:''}.<br><span>Se importan planta/cargos, asignaciones frente a curso y coordinaciones de área u orientación. Los permisos se derivan automáticamente desde Gestión.</span>`,'ok');
+      toast(`Planta importada: ${created+updated} docentes · ${assigned} asignaciones · ${coordinations} coordinaciones.`);
       setTimeout(()=>{
         try{window.PCILeanManagementV71?.render?.()}catch(e){console.warn('V71 management refresh',e)}
         try{window.PCIAnnualSchedulerV68?.render?.()}catch(e){console.warn('V71 schedule refresh',e)}
@@ -262,13 +332,13 @@
     section.dataset.ready='1';
     section.innerHTML=`
       <div class="eyebrow">Carga masiva simple</div>
-      <h2>Planta primero, asignaciones después</h2>
-      <p>El archivo tiene dos hojas. En <strong>PLANTA DOCENTE</strong> cargás nombre, DNI, mail y el <strong>tipo de cargo desde un desplegable</strong>. En <strong>ASIGNACIONES</strong> vinculás después cada materia/curso con un docente de esa planta.</p>
+      <h2>Planta, asignaciones y coordinaciones</h2>
+      <p>El archivo tiene tres hojas. En <strong>PLANTA DOCENTE</strong> cargás nombre, DNI, mail y cargos. En <strong>ASIGNACIONES</strong> vinculás cada materia/curso con un docente. En <strong>COORDINACIONES</strong> indicás tipo <strong>Área u Orientación</strong>, ámbito y turno; podés repetir un docente en varias filas para asignarle varias coordinaciones.</p>
       <div class="v71-simple-actions">
         <button type="button" class="btn soft" data-v71-simple-download>Descargar Excel</button>
         <label class="btn primary v71-simple-file">Importar Excel<input type="file" accept=".xlsx,.xls" hidden data-v71-simple-file></label>
       </div>
-      <div class="v71-simple-example"><strong>Orden correcto:</strong><span>1. Juan Pérez · TP2 · 24 HC → 2. Matemática 1.º A · 4 HC → Juan Pérez</span></div>
+      <div class="v71-simple-example"><strong>Orden correcto:</strong><span>1. Juan Pérez · TP2 · 24 HC → 2. Matemática 1.º A → Juan Pérez → 3. Juan Pérez · Área · Ciencias Sociales · Mañana</span></div>
       <div id="v71SimpleExcelResult"></div>`;
     section.querySelector('[data-v71-simple-download]').onclick=downloadSimpleWorkbook;
     section.querySelector('input[data-v71-simple-file]').onchange=e=>{const f=e.target.files?.[0];if(f)importSimpleWorkbook(f)};
