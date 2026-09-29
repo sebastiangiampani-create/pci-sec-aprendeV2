@@ -107,6 +107,16 @@
     return out;
   }
 
+  function coordinatorAllowedAreasByOrientation(){
+    const out={};
+    for(const orientation of [...(state.selected||[])].map(x=>String(x||'').trim()).filter(Boolean)){
+      const areas=new Set();
+      for(const g of groupsForOrientation(orientation))if(g?.area)areas.add(String(g.area));
+      out[orientation]=[...areas];
+    }
+    return out;
+  }
+
   function normalizeSession(scope={}){
     const role=ROLES.has(scope.role)?scope.role:'admin';
     let teacherId=String(scope.teacherId||'');
@@ -129,6 +139,7 @@
     const coordinatorOrientation=String(scope.coordinatorOrientation||'');
     const coordinatorAreas=[...(scope.coordinatorAreas||[])];
     const storedCoordinatorAreas=role==='coordinator'?coordinatorEditableAreasByOrientation(scope.teacherId):{};
+    const coordinatorAllowedAreas=role==='coordinator'?coordinatorAllowedAreasByOrientation():{};
     const editableAreasByOrientation=role==='coordinator'
       ? (Object.keys(storedCoordinatorAreas).length?storedCoordinatorAreas:(coordinatorOrientation?{[coordinatorOrientation]:[...coordinatorAreas]}:{}))
       : areas;
@@ -138,7 +149,7 @@
       studentDnis:[...(scope.studentDnis||[])],
       coordinatorOrientation,
       coordinatorAreas,
-      allowedAreasByOrientation:role==='coordinator'?Object.fromEntries((state.selected||[]).map(o=>[o,[...new Set((window.PCIPhase2V28?.groups?.()||[]).map(g=>g.area).filter(Boolean))]])):areas,
+      allowedAreasByOrientation:role==='coordinator'?coordinatorAllowedAreas:areas,
       editableAreasByOrientation,
       editableSubjectsByOrientation,
       commissionKeys,
@@ -297,6 +308,6 @@
 
   window.PCIAppAccessV80={
     setSession,getSession:()=>({...session,studentDnis:[...session.studentDnis],coordinatorOrientation:session.coordinatorOrientation||'',coordinatorAreas:[...(session.coordinatorAreas||[])]}),
-    derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,coordinatorAssignments,coordinatorEditableAreasByOrientation,canOpen,apply
+    derivedAccess,teacherCommissionKeys,teacherAreasByOrientation,teacherByEmail,studentDnisByEmail,coordinatorAssignments,coordinatorEditableAreasByOrientation,coordinatorAllowedAreasByOrientation,canOpen,apply
   };
 })();
