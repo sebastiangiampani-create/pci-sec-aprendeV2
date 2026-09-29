@@ -7,7 +7,7 @@ test('V108 documento PCI usa datos automaticos y texto manual persistente',()=>{
   const loader=fs.readFileSync('app.html','utf8');
 
   assert.ok(loader.includes("'src/v108-pci-document-editor.js'"));
-  assert.ok(source.includes('phase2V28'));
+  assert.ok(source.includes('PCIPhase2V28'));
   assert.ok(source.includes('printDocumentV108'));
   assert.ok(source.includes('manualSections'));
   assert.ok(source.includes('contenteditable="true"'));
