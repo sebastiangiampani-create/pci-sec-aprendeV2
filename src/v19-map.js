@@ -42,6 +42,10 @@
   const sameSet = (a,b) => a.size === b.size && [...a].every(x => b.has(x));
   const socialAt = slot => new Set((current().placements[slot] || []).map(byId).filter(Boolean).filter(s => SOCIAL.has(s.name) && s.year === 3).map(s => s.name));
   const placedCount = slot => (current().placements[slot] || []).map(byId).filter(Boolean).length;
+  const phase2SpaceName = (slot,fallback='') => {
+    const name=String(current()?.phase2V28?.groups?.[slot]?.name||'').trim();
+    return name||fallback;
+  };
 
   function showBlocked(message, resolution='') {
     const box = $id('validation');
@@ -414,13 +418,13 @@
       if (r.annual) {
         for (let y=1;y<=5;y++) {
           const slot = `${r.k}-n${y}`;
-          html += `<div class="cell annual"><div class="drop" data-slot="${slot}"><strong>C${y*2-1}+C${y*2}</strong>${placed(slot)}</div></div>`;
+          html += `<div class="cell annual"><div class="drop" data-slot="${slot}"><strong data-space-name="${esc(slot)}">${esc(phase2SpaceName(slot,`${r.l} · Nivel ${y}`))}</strong>${placed(slot)}</div></div>`;
         }
       } else if (r.annualLevel) {
         for (let y=1;y<=5;y++) {
           if (y === r.annualLevel) {
             const slot = `${r.k}-n${y}`;
-            html += `<div class="cell annual"><div class="drop" data-slot="${slot}"><strong>Anual · C${y*2-1}+C${y*2}</strong>${placed(slot)}</div></div>`;
+            html += `<div class="cell annual"><div class="drop" data-slot="${slot}"><strong data-space-name="${esc(slot)}">${esc(phase2SpaceName(slot,r.l))}</strong>${placed(slot)}</div></div>`;
           } else html += '<div class="cell inactive">—</div><div class="cell inactive">—</div>';
         }
       } else if (r.socialConfig) {
@@ -435,7 +439,7 @@
           if (r.a(t)) {
             const slot = `${r.k}-c${t}`;
             const typeEmpty = (r.k === 'foN3' || r.k === 'foN4') && !getFoType(Number(r.k.slice(-1)),t);
-            html += `<div class="cell"><div class="drop ${typeEmpty ? 'format-empty' : ''}" data-slot="${slot}"><strong>${label(r.k,t)}</strong>${placed(slot)}</div></div>`;
+            html += `<div class="cell"><div class="drop ${typeEmpty ? 'format-empty' : ''}" data-slot="${slot}"><strong data-space-name="${esc(slot)}">${esc(phase2SpaceName(slot,label(r.k,t)))}</strong>${placed(slot)}</div></div>`;
           } else html += '<div class="cell inactive">—</div>';
         }
       }
@@ -455,6 +459,15 @@
       bindTouchDrag(el.querySelector('.map-grip'),{kind:'move',from,id},s?.name || id);
     });
   };
+
+  window.addEventListener('pci-space-name-changed',event=>{
+    const slot=String(event?.detail?.slot||'');
+    const name=String(event?.detail?.name||'').trim();
+    if(!slot||!name)return;
+    document.querySelectorAll('[data-space-name]').forEach(el=>{
+      if(el.dataset.spaceName===slot)el.textContent=name;
+    });
+  });
 
   function validateSocial3() {
     const A5 = socialAt('socialA-c5'), A6 = socialAt('socialA-c6'), B5 = socialAt('socialB-c5'), B6 = socialAt('socialB-c6');
