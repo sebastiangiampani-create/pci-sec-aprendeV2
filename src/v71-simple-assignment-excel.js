@@ -25,6 +25,13 @@
     if(v==='orientacion'||v.includes('coordinacion de orientacion'))return'orientation';
     return'';
   }
+  function coordinationScope(kind,value){
+    const raw=String(value||'').trim();if(!raw)return'';
+    const options=kind==='area'
+      ? COORDINATION_AREAS
+      : [...new Set((state.selected||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+    return options.find(x=>norm(x)===norm(raw))||'';
+  }
   function cargoCode(value){
     const v=String(value||'').trim().toUpperCase();
     if(v.startsWith('TC'))return'TC';
@@ -289,7 +296,7 @@
           const dni=String(raw['DNI docente']||raw['DNI']||'').trim();
           const email=String(raw['Mail']||raw['Email']||'').trim();
           const kind=coordinationKind(raw['Tipo de coordinación']||raw['Tipo']||'');
-          const scope=String(raw['Ámbito']||raw['Ambito']||raw['Área / Orientación']||raw['Area / Orientacion']||'').trim();
+          const scope=coordinationScope(kind,raw['Ámbito']||raw['Ambito']||raw['Área / Orientación']||raw['Area / Orientacion']||'');
           const shift=String(raw['Turno']||'Sin especificar').trim()||'Sin especificar';
           if(!name&&!dni&&!email&&!kind&&!scope)continue;
           const t=Object.values(r.teachers).find(x=>(dni&&String(x.dni||'')===dni)||(email&&norm(x.email)===norm(email))||(name&&norm(x.name)===norm(name)));
@@ -333,7 +340,7 @@
     section.innerHTML=`
       <div class="eyebrow">Carga masiva simple</div>
       <h2>Planta, asignaciones y coordinaciones</h2>
-      <p>El archivo tiene tres hojas. En <strong>PLANTA DOCENTE</strong> cargás nombre, DNI, mail y cargos. En <strong>ASIGNACIONES</strong> vinculás cada materia/curso con un docente. En <strong>COORDINACIONES</strong> indicás tipo <strong>Área u Orientación</strong>, ámbito y turno; podés repetir un docente en varias filas para asignarle varias coordinaciones.</p>
+      <p>El archivo tiene tres hojas. En <strong>PLANTA DOCENTE</strong> cargás nombre, DNI, mail y cargos. En <strong>ASIGNACIONES</strong> vinculás cada materia/curso con un docente. En <strong>COORDINACIONES</strong> indicás tipo <strong>Área u Orientación</strong>, ámbito y turno; podés repetir un docente en varias filas. Al importar, el ámbito se valida contra las áreas y orientaciones configuradas de la escuela.</p>
       <div class="v71-simple-actions">
         <button type="button" class="btn soft" data-v71-simple-download>Descargar Excel</button>
         <label class="btn primary v71-simple-file">Importar Excel<input type="file" accept=".xlsx,.xls" hidden data-v71-simple-file></label>
@@ -363,5 +370,5 @@
     .v71-simple-note,.v71-simple-ok,.v71-simple-error{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:.58rem;line-height:1.45}.v71-simple-ok{background:var(--ok-soft);color:var(--ok)}.v71-simple-ok span{color:inherit;opacity:.85}.v71-simple-error{background:var(--danger-soft);color:var(--danger)}
     @media(max-width:780px){.v71-simple-actions{flex-direction:column}.v71-simple-actions>.btn,.v71-simple-actions>.v71-simple-file{width:100%;box-sizing:border-box;justify-content:center;text-align:center}}
   `;document.head.appendChild(style);
-  window.PCISimpleAssignmentExcelV71={downloadSimpleWorkbook,importSimpleWorkbook,render};
+  window.PCISimpleAssignmentExcelV71={downloadSimpleWorkbook,importSimpleWorkbook,render,coordinationKind,coordinationScope};
 })();
