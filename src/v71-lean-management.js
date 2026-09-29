@@ -2,7 +2,7 @@
   const $=id=>document.getElementById(id);
   let rendering=false,entryObserver=null,selectedCourseKey='',hoursReady=false,hoursLoading=null;
   const CARGOS={TC:36,TP1:30,TP2:24,TP3:18,TP4:12};
-  const COORD_AREAS=['Lengua y Literatura','Matemática','Lenguas Adicionales','Ciencias Naturales','Ciencias Sociales','Artes','Tecnologías','Educación Física'];
+  const COORD_AREAS=['Lengua y Literatura','Matemática','Lenguas Adicionales','Ciencias Naturales','Ciencias Sociales','Artes','Tecnologías','Educación Física','Formación Orientada'];
   const SHIFTS=['Sin especificar','Mañana','Tarde','Vespertino','Jornada completa'];
 
   function root(){
@@ -126,6 +126,31 @@
     t.cargos=cs.filter(x=>x.id!==cid);save();render();
   }
 
+  function teacherCoordinationRows(tid){
+    return coordinationList().filter(x=>String(x.teacherId||'')===String(tid||''));
+  }
+
+  function coordinationInlineHtml(t){
+    const coords=teacherCoordinationRows(t.id);
+    const orientations=[...new Set((state.selected||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+    const chips=coords.map(x=>`<span class="v110-coord-chip"><small>${x.kind==='orientation'?'Orientación':'Área'} · ${esc(x.shift||'Sin especificar')}</small><strong>${esc(x.scope||'')}</strong><button type="button" data-v95-coord-remove="${esc(x.id)}" title="Quitar coordinación">×</button></span>`).join('');
+    const shifts=SHIFTS.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+    return `<div class="v110-teacher-coords">
+      <div class="v110-coord-title"><strong>Coordinaciones</strong><small>${coords.length?coords.length+' asignada'+(coords.length===1?'':'s'):'Sin coordinaciones'}</small></div>
+      <div class="v110-coord-chips">${chips||'<span class="v110-coord-none">Este docente todavía no tiene una coordinación asignada.</span>'}</div>
+      <details class="v110-coord-editor" data-v110-coord-editor="${esc(t.id)}">
+        <summary>+ Agregar coordinación</summary>
+        <div class="v110-coord-editor-grid">
+          <select data-v110-coord-kind><option value="area">Área</option><option value="orientation">Orientación</option></select>
+          <select data-v110-coord-area>${COORD_AREAS.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select>
+          <select data-v110-coord-orientation style="display:none">${orientations.length?orientations.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(''):'<option value="">Sin orientaciones configuradas</option>'}</select>
+          <select data-v110-coord-shift>${shifts}</select>
+          <button type="button" class="btn small primary" data-v110-coord-add ${orientations.length?'':'data-no-orientations="1"'}>Asignar</button>
+        </div>
+      </details>
+    </div>`;
+  }
+
   function teacherHtml(){
     const list=teachers();
     if(!list.length)return '<div class="v71m-empty">Todavía no hay docentes cargados.</div>';
@@ -136,6 +161,7 @@
           <strong>⠿ ${esc(t.name)}</strong>
           <small>${esc(t.dni||'Sin DNI')}${t.email?` · ${esc(t.email)}`:''}</small>
           <small><strong>${assignmentCount(t.id)}</strong> asignaciones curriculares</small>
+          ${coordinationInlineHtml(t)}
           <div class="v71m-cargo-stack">
             ${teacherCargos(t).map(c=>`<div class="v71m-cargo-line">
               <label>Cargo
@@ -262,17 +288,26 @@
     </section>`;
   }
 
+  function addCoordinationForTeacher(teacherId,kind,scope,shift='Sin especificar'){
+    teacherId=String(teacherId||'');kind=kind==='orientation'?'orientation':'area';scope=String(scope||'').trim();shift=String(shift||'Sin especificar').trim()||'Sin especificar';
+    if(!teacherId||!scope)return toast('Elegí docente y ámbito de coordinación.',true);
+    const r=root();
+    const validScope=kind==='area'
+      ? COORD_AREAS.includes(scope)
+      : (state.selected||[]).map(x=>String(x||'').trim()).includes(scope);
+    if(!validScope)return toast('El ámbito elegido no corresponde al tipo de coordinación.',true);
+    const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===teacherId&&x.kind===kind&&String(x.scope)===scope&&String(x.shift||'Sin especificar')===shift);
+    if(duplicate)return toast('Esa coordinación ya está asignada con el mismo turno.',true);
+    r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId,kind,scope,shift});
+    save();render();toast('Coordinación asignada.');
+  }
+
   function addCoordination(kind){
     const isArea=kind==='area';
     const teacherId=$(isArea?'v95CoordAreaTeacher':'v95CoordOrientationTeacher')?.value||'';
     const scope=$(isArea?'v95CoordAreaScope':'v95CoordOrientationScope')?.value||'';
     const shift=$(isArea?'v95CoordAreaShift':'v95CoordOrientationShift')?.value||'Sin especificar';
-    if(!teacherId||!scope)return toast('Elegí docente y ámbito de coordinación.',true);
-    const r=root();
-    const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===String(teacherId)&&x.kind===kind&&String(x.scope)===String(scope)&&String(x.shift||'Sin especificar')===String(shift));
-    if(duplicate)return toast('Esa coordinación ya está asignada con el mismo turno.',true);
-    r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId,kind,scope,shift});
-    save();render();toast('Coordinación asignada.');
+    addCoordinationForTeacher(teacherId,kind,scope,shift);
   }
 
   function removeCoordination(id){
@@ -361,6 +396,19 @@
       host.querySelector('[data-v95-add-area]')?.addEventListener('click',()=>addCoordination('area'));
       host.querySelector('[data-v95-add-orientation]')?.addEventListener('click',()=>addCoordination('orientation'));
       host.querySelectorAll('[data-v95-coord-remove]').forEach(b=>b.addEventListener('click',()=>removeCoordination(b.dataset.v95CoordRemove)));
+      host.querySelectorAll('[data-v110-coord-kind]').forEach(sel=>sel.addEventListener('change',()=>{
+        const editor=sel.closest('[data-v110-coord-editor]'),isOrientation=sel.value==='orientation';
+        const area=editor?.querySelector('[data-v110-coord-area]'),orientation=editor?.querySelector('[data-v110-coord-orientation]');
+        if(area)area.style.display=isOrientation?'none':'block';
+        if(orientation)orientation.style.display=isOrientation?'block':'none';
+      }));
+      host.querySelectorAll('[data-v110-coord-add]').forEach(btn=>btn.addEventListener('click',()=>{
+        const editor=btn.closest('[data-v110-coord-editor]');if(!editor)return;
+        const teacherId=editor.dataset.v110CoordEditor||'',kind=editor.querySelector('[data-v110-coord-kind]')?.value||'area';
+        const scope=kind==='orientation'?editor.querySelector('[data-v110-coord-orientation]')?.value:editor.querySelector('[data-v110-coord-area]')?.value;
+        const shift=editor.querySelector('[data-v110-coord-shift]')?.value||'Sin especificar';
+        addCoordinationForTeacher(teacherId,kind,scope,shift);
+      }));
       bindDrag(host);bindTouchAssign(host);
       setTimeout(()=>{
         try{window.PCISimpleAssignmentExcelV71?.render?.()}catch(e){console.warn('V71P excel',e)}
@@ -417,13 +465,14 @@
     .v71m-teachers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-top:10px}.v71m-teacher{position:relative;padding:10px 42px 10px 10px;border:1px solid var(--line);border-radius:12px;background:var(--band);cursor:grab}.v71m-teacher.picked{outline:3px solid var(--mint)}.v71m-teacher.over{border-color:#e0bdc5;background:var(--danger-soft)}.v71m-teacher strong{display:block;font-size:.72rem}.v71m-teacher small{display:block;margin-top:2px;font-size:.52rem;color:var(--muted)}.v71m-teacher>button{position:absolute;right:8px;top:8px;width:28px;height:28px;border:1px solid #ddb7bf;border-radius:50%;background:#fff5f6;color:var(--danger);font-size:1rem;font-weight:900}.v71m-cargo-stack{display:grid;gap:6px;margin-top:8px}.v71m-cargo-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fff}.v71m-cargo-line label,.v71m-meeting{display:flex;align-items:center;gap:4px;font-size:.52rem;font-weight:800}.v71m-cargo-line select,.v71m-cargo-line input,.v71m-meeting input{width:auto;max-width:110px;padding:5px;border:1px solid var(--line);border-radius:7px;background:#fff}.v71m-cargo-hc{font-size:.52rem;font-weight:900;color:var(--mint-dark)}.v71m-add-cargo{justify-self:start;border:1px dashed var(--mint-dark);border-radius:999px;background:var(--mint-soft);color:var(--mint-dark);padding:6px 9px;font-size:.54rem;font-weight:900}.v71m-cargo-remove{width:24px!important;height:24px!important;position:static!important;border-radius:50%!important}.v71m-cap{font-size:.5rem!important}.v71m-hours{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px}.v71m-hours span{padding:5px;border-radius:8px;background:#fff;font-size:.5rem;text-align:center}.v71m-hours b{display:block;font-size:.68rem}.v71m-hours .bad{background:var(--danger-soft);color:var(--danger)}
     .v71m-empty{padding:12px;border:1px dashed var(--line);border-radius:10px;margin-top:10px;color:var(--muted);font-size:.62rem}
     .v71o-course-label{display:grid;gap:5px;margin-top:10px;max-width:420px;font-size:.6rem;font-weight:850}.v71o-course-label select{padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}.v71o-subject-list{display:grid;gap:7px;margin-top:10px}.v71o-subject-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--band)}.v71o-subject-row.dragover{outline:3px solid var(--mint)}.v71o-subject-row strong{display:block;font-size:.68rem}.v71o-subject-row small{display:block;margin-top:2px;font-size:.52rem;color:var(--muted)}.v71o-dropzone{min-height:42px;border:1.5px dashed #9dafbb;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:7px;padding:7px;color:var(--muted);font-size:.58rem;font-weight:800}.v71o-dropzone span{color:var(--ink);cursor:grab}.v71o-dropzone button{width:25px;height:25px;border:0;border-radius:50%;background:var(--danger-soft);color:var(--danger);font-weight:900}
-    .v95-coordination h2{margin:3px 0 4px!important}.v95-coord-forms{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.v95-coord-form{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1fr) minmax(120px,.7fr) auto;gap:7px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--band)}.v95-coord-form>strong{grid-column:1/-1;font-size:.64rem}.v95-coord-form select{min-width:0;padding:8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.v95-coord-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.v95-coord-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}.v95-coord-row small,.v95-coord-row strong,.v95-coord-row span{display:block}.v95-coord-row small{color:var(--mint-dark);font-size:.48rem;font-weight:900;text-transform:uppercase}.v95-coord-row strong{margin-top:2px;font-size:.65rem}.v95-coord-row span{margin-top:2px;color:var(--muted);font-size:.54rem}.v95-coord-row button{width:26px;height:26px;border:0;border-radius:50%;background:var(--danger-soft);color:var(--danger);font-weight:900}
+    .v110-teacher-coords{margin-top:9px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}.v110-coord-title{display:flex;justify-content:space-between;gap:8px;align-items:center}.v110-coord-title>strong{font-size:.58rem!important}.v110-coord-title>small{margin:0!important;font-size:.48rem!important}.v110-coord-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.v110-coord-chip{position:relative;display:grid;gap:1px;min-width:120px;padding:6px 25px 6px 7px;border-radius:8px;background:var(--mint-soft);color:var(--ink)}.v110-coord-chip small{margin:0!important;font-size:.43rem!important;color:var(--mint-dark)!important}.v110-coord-chip strong{font-size:.54rem!important}.v110-coord-chip button{position:absolute;right:4px;top:4px;width:18px;height:18px;border:0;border-radius:50%;background:#fff;color:var(--danger);font-weight:900}.v110-coord-none{font-size:.48rem;color:var(--muted)}.v110-coord-editor{margin-top:6px}.v110-coord-editor summary{cursor:pointer;font-size:.5rem;font-weight:900;color:var(--mint-dark)}.v110-coord-editor-grid{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:5px;margin-top:6px}.v110-coord-editor-grid select{min-width:0;padding:6px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:.5rem}
+        .v95-coordination h2{margin:3px 0 4px!important}.v95-coord-forms{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.v95-coord-form{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1fr) minmax(120px,.7fr) auto;gap:7px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--band)}.v95-coord-form>strong{grid-column:1/-1;font-size:.64rem}.v95-coord-form select{min-width:0;padding:8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.v95-coord-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px;margin-top:10px}.v95-coord-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}.v95-coord-row small,.v95-coord-row strong,.v95-coord-row span{display:block}.v95-coord-row small{color:var(--mint-dark);font-size:.48rem;font-weight:900;text-transform:uppercase}.v95-coord-row strong{margin-top:2px;font-size:.65rem}.v95-coord-row span{margin-top:2px;color:var(--muted);font-size:.54rem}.v95-coord-row button{width:26px;height:26px;border:0;border-radius:50%;background:var(--danger-soft);color:var(--danger);font-weight:900}
     .v66-assignment-section,.v48-table-wrap{display:none!important}
     .v71n-entry-card{margin-top:16px;padding:18px;display:flex;justify-content:space-between;gap:16px;align-items:center;border-color:#9edfd7;background:linear-gradient(135deg,#f7fffd,#edf8f7)}.v71n-entry-card h2{margin:4px 0}.v71n-entry-card p{margin:0;color:var(--muted);font-size:.72rem}.v71n-entry-card small{display:block;margin-top:7px;color:var(--muted);font-size:.58rem}.v71n-entry-card>.btn{flex:0 0 auto}
     @media(max-width:900px){.v71m-add{grid-template-columns:1fr 1fr}.v71m-add .btn{grid-column:1/-1}.v71m-hours{grid-template-columns:repeat(2,1fr)}.v95-coord-forms{grid-template-columns:1fr}.v95-coord-form{grid-template-columns:1fr 1fr}}
-    @media(max-width:780px){.v71m-add{grid-template-columns:1fr}.v71m-add .btn{width:100%;grid-column:auto}.v71m-teachers{grid-template-columns:1fr}.v71o-subject-row{grid-template-columns:1fr}.v71n-entry-card{align-items:stretch;flex-direction:column}.v71n-entry-card>.btn{width:100%}.v95-coord-form{grid-template-columns:1fr}.v95-coord-list{grid-template-columns:1fr}}
+    @media(max-width:780px){.v71m-add{grid-template-columns:1fr}.v71m-add .btn{width:100%;grid-column:auto}.v71m-teachers{grid-template-columns:1fr}.v71o-subject-row{grid-template-columns:1fr}.v71n-entry-card{align-items:stretch;flex-direction:column}.v71n-entry-card>.btn{width:100%}.v95-coord-form{grid-template-columns:1fr}.v95-coord-list{grid-template-columns:1fr}.v110-coord-editor-grid{grid-template-columns:1fr}.v110-coord-editor-grid .btn{width:100%}}
   `;
   document.head.appendChild(style);
 
-  window.PCILeanManagementV71={render,deleteTeacher,addTeacher,ensureEntryButtons,openManagement,setAssignment,ensureHours,stats,coordinationList,addCoordination,removeCoordination};
+  window.PCILeanManagementV71={render,deleteTeacher,addTeacher,ensureEntryButtons,openManagement,setAssignment,ensureHours,stats,coordinationList,addCoordination,addCoordinationForTeacher,removeCoordination};
 })();
