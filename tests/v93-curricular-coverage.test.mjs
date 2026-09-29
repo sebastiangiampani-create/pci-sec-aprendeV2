@@ -232,6 +232,18 @@ test('V106 permite asignar FG de otros niveles pero la cobertura solo cuenta el 
   assert.equal(r.percent,33.3);
 });
 
+
+test('V107 un nombre editado en Desarrollo Curricular se reutiliza en el Mapa de la Oferta',()=>{
+  const phase2=fs.readFileSync('src/v47-phase2-matrix.js','utf8');
+  const map=fs.readFileSync('src/v19-map.js','utf8');
+  assert.ok(phase2.includes("pci-space-name-changed"));
+  assert.ok(phase2.includes("detail:{slot:g.id,name:String(g.data.name||g.name||'').trim()}"));
+  assert.ok(map.includes("current()?.phase2V28?.groups?.[slot]?.name"));
+  assert.ok(map.includes("data-space-name"));
+  assert.ok(map.includes("phase2SpaceName(slot"));
+  assert.ok(map.includes("window.addEventListener('pci-space-name-changed'"));
+});
+
 test('V97 FO conserva jerarquía de componentes cuando exista base anual por nivel',()=>{
   const core=fs.readFileSync('src/v91-coverage-core.js','utf8');
   assert.ok(core.includes("?'Materia':'Bloque'"));
