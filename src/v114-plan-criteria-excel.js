@@ -196,13 +196,11 @@
       card=document.createElement('section');card.id='v114CriteriaEntry';card.className='card v114-entry';
     }
     const role=currentSession().role,allowed=['admin','teacher','coordinator'].includes(role);
-    const curricular=$('v75CurricularArea'),management=$('v71LeanHomeEntry'),pciList=$('pciList');
-    if(['teacher','coordinator'].includes(role)&&curricular?.parentNode){
-      curricular.after(card);
-    }else if(management?.parentNode){
+    const management=$('v71LeanHomeEntry'),pciList=$('pciList');
+    if(management?.parentNode){
       management.after(card);
     }else if(pciList?.parentNode){
-      pciList.before(card);
+      pciList.after(card);
     }else if(card.parentNode!==home){
       home.appendChild(card);
     }
@@ -228,12 +226,21 @@
     selectedKey='';showScreen();renderBrowser();
   }
 
+  function contextOrder(a,b){
+    return String(a.orientation||'').localeCompare(String(b.orientation||''),'es')
+      || Number(a.group?.year||0)-Number(b.group?.year||0)
+      || String(a.commission?.course||'').localeCompare(String(b.commission?.course||''),'es',{numeric:true})
+      || String(a.group?.area||'').localeCompare(String(b.group?.area||''),'es')
+      || String(a.group?.data?.name||a.group?.name||'').localeCompare(String(b.group?.data?.name||b.group?.name||''),'es',{numeric:true})
+      || Number(a.planNumber||0)-Number(b.planNumber||0);
+  }
+
   function filteredContexts(){
     return scopedContexts().filter(ctx=>
       (!filters.orientation||ctx.orientation===filters.orientation)&&
       (!filters.year||String(ctx.group.year)===String(filters.year))&&
       (!filters.course||ctx.commission.course===filters.course)
-    );
+    ).sort(contextOrder);
   }
 
   function renderBrowser(){
@@ -279,7 +286,7 @@
       <div class="v114-topbar"><button type="button" class="btn soft" data-v114-back>← Planes</button></div>
       <header class="v114-plan-head">
         <div><div class="eyebrow">${esc(ctx.orientation)} · ${esc(ctx.commission.course)}</div><h1>${esc(ctx.group.data?.name||ctx.group.name)} · Plan ${ctx.planNumber}</h1><p>${esc(planName(ctx))}</p></div>
-        <button type="button" class="btn primary" data-v114-download ${criteriaReady(rec)?'':'disabled'}>Descargar Excel</button>
+        <button type="button" class="btn primary" data-v114-download>Descargar Excel</button>
       </header>
       <section class="card v114-readonly">
         <div class="eyebrow">Datos del plan · solo lectura</div>
@@ -319,7 +326,7 @@
     host.querySelector('[data-v114-add]').onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));addCriterion(rec);renderPlan()};
     host.querySelectorAll('[data-v114-remove]').forEach(b=>b.onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));if(removeCriterion(rec,Number(b.dataset.v114Remove)))renderPlan()});
     host.querySelectorAll('[data-v114-validate]').forEach(b=>b.onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));saveState();toggleOwnValidation(ctx,rec,Number(b.dataset.v114Validate))});
-    host.querySelector('[data-v114-download]').onclick=()=>downloadWorkbook(ctx,rec);
+    host.querySelector('[data-v114-download]').onclick=e=>downloadWorkbook(ctx,rec,e.currentTarget);
   }
 
   function loadExcelJS(){
