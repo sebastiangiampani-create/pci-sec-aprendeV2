@@ -32,6 +32,30 @@
       : [...new Set((state.selected||[]).map(x=>String(x||'').trim()).filter(Boolean))];
     return options.find(x=>norm(x)===norm(raw))||'';
   }
+
+  function coordinationAreaForRow(row){
+    if(String(row?.origin||'').toUpperCase()==='FO')return 'Formación Orientada';
+    const name=norm(row?.name||'');
+    if(name==='matematica')return 'Matemática';
+    if(name==='lengua y literatura')return 'Lengua y Literatura';
+    if(name.includes('lengua adicional'))return 'Lenguas Adicionales';
+    if(name==='educacion fisica')return 'Educación Física';
+    if(['biologia','fisico quimica','fisica','quimica','ciencias naturales'].includes(name))return 'Ciencias Naturales';
+    if(['historia','geografia','formacion etica y ciudadana','economia','filosofia','ciencias sociales'].includes(name))return 'Ciencias Sociales';
+    if(name==='artes'||name.includes('artes visuales')||name.includes('musica')||name.includes('teatro'))return 'Artes';
+    if(name.includes('tecnologia')||name.includes('tecnologias de la informacion')||name.includes('informatica'))return 'Tecnologías';
+    return '';
+  }
+  function coordinationAreasForTeacher(teacherId){
+    const external=window.PCILeanManagementV71?.coordinationAreasForTeacher?.(teacherId);
+    if(Array.isArray(external))return external;
+    const tid=String(teacherId||''),set=new Set(),r=root();
+    for(const row of rows()){
+      if(String(r.assignments?.[row.instanceId]||'')!==tid)continue;
+      const area=coordinationAreaForRow(row);if(area)set.add(area);
+    }
+    return COORDINATION_AREAS.filter(x=>set.has(x));
+  }
   function cargoCode(value){
     const v=String(value||'').trim().toUpperCase();
     if(v.startsWith('TC'))return'TC';
@@ -247,7 +271,7 @@
     try{
       const XLSX=await loadXLSX(),buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array'});
       const r=root(),index=rowIndex();
-      let created=0,updated=0,assigned=0,coordinations=0,skipped=0;
+      let created=0,updated=0,assigned=0,coordinations=0,coordinationRejected=0,skipped=0;
 
       const plantName=wb.SheetNames.find(n=>norm(n)==='planta docente');
       const assignmentName=wb.SheetNames.find(n=>norm(n)==='asignaciones'||norm(n)==='asignacion docente');
@@ -301,6 +325,7 @@
           if(!name&&!dni&&!email&&!kind&&!scope)continue;
           const t=Object.values(r.teachers).find(x=>(dni&&String(x.dni||'')===dni)||(email&&norm(x.email)===norm(email))||(name&&norm(x.name)===norm(name)));
           if(!t||!kind||!scope){skipped++;continue}
+          if(kind==='area'&&!coordinationAreasForTeacher(t.id).includes(scope)){coordinationRejected++;continue}
           const duplicate=(r.coordinations||[]).some(x=>String(x.teacherId)===String(t.id)&&x.kind===kind&&norm(x.scope)===norm(scope)&&norm(x.shift||'Sin especificar')===norm(shift));
           if(duplicate)continue;
           r.coordinations.push({id:`coord-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,teacherId:t.id,kind,scope,shift});
@@ -310,8 +335,8 @@
 
       save();
       try{window.PCIAutoAreaCoincidenceV54?.deriveTeams?.()}catch(e){console.warn('V71 deriveTeams',e)}
-      setImportUi(`<strong>${created}</strong> docentes nuevos · <strong>${updated}</strong> actualizados · <strong>${assigned}</strong> asignaciones · <strong>${coordinations}</strong> coordinaciones cargadas${skipped?` · ${skipped} filas no identificadas`:''}.<br><span>Se importan planta/cargos, asignaciones frente a curso y coordinaciones de área u orientación. Los permisos se derivan automáticamente desde Gestión.</span>`,'ok');
-      toast(`Planta importada: ${created+updated} docentes · ${assigned} asignaciones · ${coordinations} coordinaciones.`);
+      setImportUi(`<strong>${created}</strong> docentes nuevos · <strong>${updated}</strong> actualizados · <strong>${assigned}</strong> asignaciones · <strong>${coordinations}</strong> coordinaciones cargadas${coordinationRejected?` · <strong>${coordinationRejected}</strong> coordinaciones rechazadas por área incompatible`:''}${skipped?` · ${skipped} filas no identificadas`:''}.<br><span>Las coordinaciones de área solo se importan si coinciden con las materias asignadas al docente. Las coordinaciones de orientación conservan su validación por orientación configurada.</span>`,'ok');
+      toast(`Planta importada: ${created+updated} docentes · ${assigned} asignaciones · ${coordinations} coordinaciones${coordinationRejected?` · ${coordinationRejected} rechazadas por incompatibilidad`:''}.`,coordinationRejected>0);
       setTimeout(()=>{
         try{window.PCILeanManagementV71?.render?.()}catch(e){console.warn('V71 management refresh',e)}
         try{window.PCIAnnualSchedulerV68?.render?.()}catch(e){console.warn('V71 schedule refresh',e)}
@@ -370,5 +395,5 @@
     .v71-simple-note,.v71-simple-ok,.v71-simple-error{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:.58rem;line-height:1.45}.v71-simple-ok{background:var(--ok-soft);color:var(--ok)}.v71-simple-ok span{color:inherit;opacity:.85}.v71-simple-error{background:var(--danger-soft);color:var(--danger)}
     @media(max-width:780px){.v71-simple-actions{flex-direction:column}.v71-simple-actions>.btn,.v71-simple-actions>.v71-simple-file{width:100%;box-sizing:border-box;justify-content:center;text-align:center}}
   `;document.head.appendChild(style);
-  window.PCISimpleAssignmentExcelV71={downloadSimpleWorkbook,importSimpleWorkbook,render,coordinationKind,coordinationScope};
+  window.PCISimpleAssignmentExcelV71={downloadSimpleWorkbook,importSimpleWorkbook,render,coordinationKind,coordinationScope,coordinationAreaForRow,coordinationAreasForTeacher};
 })();
