@@ -329,14 +329,44 @@
     host.querySelector('[data-v114-download]').onclick=e=>downloadWorkbook(ctx,rec,e.currentTarget);
   }
 
+  let excelLoaderPromise=null;
+  function waitExcelScript(script,timeoutMs=9000){
+    return new Promise((resolve,reject)=>{
+      if(window.ExcelJS)return resolve(window.ExcelJS);
+      let done=false;
+      const finish=(ok,value)=>{if(done)return;done=true;clearTimeout(timer);script.removeEventListener('load',onload);script.removeEventListener('error',onerror);ok?resolve(value):reject(value)};
+      const onload=()=>window.ExcelJS?finish(true,window.ExcelJS):finish(false,new Error('El generador de Excel cargó sin inicializarse.'));
+      const onerror=()=>finish(false,new Error('No se pudo cargar el generador de Excel.'));
+      const timer=setTimeout(()=>finish(false,new Error('La carga del generador de Excel demoró demasiado.')),timeoutMs);
+      script.addEventListener('load',onload,{once:true});script.addEventListener('error',onerror,{once:true});
+    });
+  }
+
   function loadExcelJS(){
     if(window.ExcelJS)return Promise.resolve(window.ExcelJS);
-    return new Promise((resolve,reject)=>{
+    if(excelLoaderPromise)return excelLoaderPromise;
+    excelLoaderPromise=(async()=>{
       const prior=document.querySelector('script[data-pci-exceljs]');
-      if(prior){if(window.ExcelJS)return resolve(window.ExcelJS);prior.addEventListener('load',()=>resolve(window.ExcelJS),{once:true});prior.addEventListener('error',()=>reject(new Error('No se pudo cargar el generador de Excel.')),{once:true});return}
-      const s=document.createElement('script');s.dataset.pciExceljs='1';s.async=true;s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
-      s.onload=()=>resolve(window.ExcelJS);s.onerror=()=>reject(new Error('No se pudo cargar el generador de Excel.'));document.head.appendChild(s);
-    });
+      if(prior&&!window.ExcelJS){
+        try{return await waitExcelScript(prior,3500)}
+        catch{try{prior.remove()}catch{}}
+      }
+      const urls=[
+        'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+        'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'
+      ];
+      let lastError=null;
+      for(const url of urls){
+        const script=document.createElement('script');script.dataset.pciExceljs='1';script.async=true;script.src=url;document.head.appendChild(script);
+        try{
+          const lib=await waitExcelScript(script,10000);
+          if(lib)return lib;
+        }catch(error){lastError=error;try{script.remove()}catch{}}
+      }
+      throw lastError||new Error('No se pudo cargar el generador de Excel.');
+    })();
+    excelLoaderPromise.catch(()=>{excelLoaderPromise=null});
+    return excelLoaderPromise;
   }
 
   function setSheetHeader(row){
@@ -413,7 +443,7 @@
     if($('v114PlanCriteriaScreen')?.classList.contains('active')&&!['admin','teacher','coordinator'].includes(currentSession().role))goHome();
   }
 
-  function start(){ensureScreen();ensureEntry();refreshAccess()}
+  function start(){ensureScreen();ensureEntry();refreshAccess();loadExcelJS().catch(()=>{})}
   window.addEventListener('pci-app-ready',()=>setTimeout(start,1100));
   window.addEventListener('pci-access-changed',()=>setTimeout(refreshAccess,50));
   setTimeout(start,1900);
@@ -432,6 +462,6 @@
 
   window.PCIPlanCriteriaExcelV114={
     openModule,allContexts,scopedContexts,ensureRecord,criteriaReady,validationStats,teachersFor,studentsFor,downloadWorkbook,
-    addCriterion,removeCriterion,updateCriterion,version:VERSION
+    addCriterion,removeCriterion,updateCriterion,contextOrder,version:VERSION
   };
 })();
