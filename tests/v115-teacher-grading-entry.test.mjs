@@ -27,3 +27,5 @@ test('V115 no reactiva Calificaciones ni Boletines legacy',()=>{
   assert.equal(app.includes("'src/v77-boletines-cierres.js'"),false);
   assert.ok(app.includes("'src/v114-plan-criteria-excel.js'"));
 });
+
+// V115 sync: acceso docente visible y autorizado por controlador central.
