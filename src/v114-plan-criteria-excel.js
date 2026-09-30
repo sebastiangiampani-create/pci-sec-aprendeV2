@@ -373,6 +373,12 @@
     row.font={bold:true};row.alignment={vertical:'middle',wrapText:true};row.height=26;
   }
 
+  function excelColumnName(number){
+    let n=Math.max(1,Number(number)||1),out='';
+    while(n>0){n--;out=String.fromCharCode(65+(n%26))+out;n=Math.floor(n/26)}
+    return out;
+  }
+
   async function downloadWorkbook(ctx,rec,trigger=null){
     if(!criteriaReady(rec))return toast('Primero completá y guardá los cuatro criterios obligatorios.',true);
     const originalText=trigger?.textContent||'Descargar Excel';
@@ -410,7 +416,7 @@
         teachers.forEach(t=>row[`t_${t.id}`]=c.validations?.[t.id]?'VALIDADO':'PENDIENTE');
         crit.addRow(row);
       });
-      crit.getColumn(1).hidden=true;crit.views=[{state:'frozen',ySplit:1}];crit.autoFilter={from:'A1',to:crit.getRow(1).lastCell.address};
+      crit.getColumn(1).hidden=true;crit.views=[{state:'frozen',ySplit:1}];crit.autoFilter={from:'A1',to:excelColumnName(crit.columnCount)+'1'};
       crit.eachRow(row=>row.alignment={vertical:'top',wrapText:true});
 
       const load=wb.addWorksheet('CARGA');
@@ -424,7 +430,7 @@
       setSheetHeader(load.getRow(1));
       students.forEach(s=>load.addRow({planKey:ctx.key,studentId:s.dni||'',dni:s.dni||'',lastName:s.lastName||'',firstName:s.firstName||'',status:'',final:'',notes:''}));
       load.getColumn(1).hidden=true;load.getColumn(2).hidden=true;
-      load.views=[{state:'frozen',ySplit:1,xSplit:5}];load.autoFilter={from:'A1',to:load.getRow(1).lastCell.address};
+      load.views=[{state:'frozen',ySplit:1,xSplit:5}];load.autoFilter={from:'A1',to:excelColumnName(load.columnCount)+'1'};
       const statusCol=5+visibleCriteria.length+1,finalCol=statusCol+1;
       for(let r=2;r<=Math.max(2,load.rowCount);r++){
         load.getCell(r,statusCol).dataValidation={type:'list',allowBlank:true,formulae:['"No iniciado,En proceso,Finalizado"']};
@@ -471,6 +477,6 @@
 
   window.PCIPlanCriteriaExcelV114={
     openModule,allContexts,scopedContexts,ensureRecord,criteriaReady,validationStats,teachersFor,studentsFor,downloadWorkbook,
-    addCriterion,removeCriterion,updateCriterion,contextOrder,version:VERSION
+    addCriterion,removeCriterion,updateCriterion,contextOrder,excelColumnName,version:VERSION
   };
 })();
