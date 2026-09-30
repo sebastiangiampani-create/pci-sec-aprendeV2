@@ -8,10 +8,10 @@ test('V115 acceso docente reconoce la pantalla reducida de Calificaciones',()=>{
   assert.ok(access.includes("setHidden($('v114CriteriaEntry'),!['admin','teacher','coordinator'].includes(access.role))"));
 });
 
-test('V115 tarjeta Calificaciones se reposiciona en zona visible para docente y coordinador',()=>{
+test('V115/V116 tarjeta Calificaciones queda visible y ordenada en Inicio',()=>{
   const source=fs.readFileSync('src/v114-plan-criteria-excel.js','utf8');
-  assert.ok(source.includes("['teacher','coordinator'].includes(role)&&curricular?.parentNode"));
-  assert.ok(source.includes('curricular.after(card)'));
+  assert.ok(source.includes("management.after(card)"));
+  assert.ok(source.includes("pciList.after(card)"));
   assert.ok(source.includes("card.hidden=!allowed"));
 });
 

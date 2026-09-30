@@ -196,13 +196,11 @@
       card=document.createElement('section');card.id='v114CriteriaEntry';card.className='card v114-entry';
     }
     const role=currentSession().role,allowed=['admin','teacher','coordinator'].includes(role);
-    const curricular=$('v75CurricularArea'),management=$('v71LeanHomeEntry'),pciList=$('pciList');
-    if(['teacher','coordinator'].includes(role)&&curricular?.parentNode){
-      curricular.after(card);
-    }else if(management?.parentNode){
+    const management=$('v71LeanHomeEntry'),pciList=$('pciList');
+    if(management?.parentNode){
       management.after(card);
     }else if(pciList?.parentNode){
-      pciList.before(card);
+      pciList.after(card);
     }else if(card.parentNode!==home){
       home.appendChild(card);
     }
@@ -228,12 +226,21 @@
     selectedKey='';showScreen();renderBrowser();
   }
 
+  function contextOrder(a,b){
+    return String(a.orientation||'').localeCompare(String(b.orientation||''),'es')
+      || Number(a.group?.year||0)-Number(b.group?.year||0)
+      || String(a.commission?.course||'').localeCompare(String(b.commission?.course||''),'es',{numeric:true})
+      || String(a.group?.area||'').localeCompare(String(b.group?.area||''),'es')
+      || String(a.group?.data?.name||a.group?.name||'').localeCompare(String(b.group?.data?.name||b.group?.name||''),'es',{numeric:true})
+      || Number(a.planNumber||0)-Number(b.planNumber||0);
+  }
+
   function filteredContexts(){
     return scopedContexts().filter(ctx=>
       (!filters.orientation||ctx.orientation===filters.orientation)&&
       (!filters.year||String(ctx.group.year)===String(filters.year))&&
       (!filters.course||ctx.commission.course===filters.course)
-    );
+    ).sort(contextOrder);
   }
 
   function renderBrowser(){
@@ -279,7 +286,7 @@
       <div class="v114-topbar"><button type="button" class="btn soft" data-v114-back>← Planes</button></div>
       <header class="v114-plan-head">
         <div><div class="eyebrow">${esc(ctx.orientation)} · ${esc(ctx.commission.course)}</div><h1>${esc(ctx.group.data?.name||ctx.group.name)} · Plan ${ctx.planNumber}</h1><p>${esc(planName(ctx))}</p></div>
-        <button type="button" class="btn primary" data-v114-download ${criteriaReady(rec)?'':'disabled'}>Descargar Excel</button>
+        <button type="button" class="btn primary" data-v114-download>Descargar Excel</button>
       </header>
       <section class="card v114-readonly">
         <div class="eyebrow">Datos del plan · solo lectura</div>
@@ -319,25 +326,57 @@
     host.querySelector('[data-v114-add]').onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));addCriterion(rec);renderPlan()};
     host.querySelectorAll('[data-v114-remove]').forEach(b=>b.onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));if(removeCriterion(rec,Number(b.dataset.v114Remove)))renderPlan()});
     host.querySelectorAll('[data-v114-validate]').forEach(b=>b.onclick=()=>{host.querySelectorAll('[data-v114-criterion]').forEach(el=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));saveState();toggleOwnValidation(ctx,rec,Number(b.dataset.v114Validate))});
-    host.querySelector('[data-v114-download]').onclick=()=>downloadWorkbook(ctx,rec);
+    host.querySelector('[data-v114-download]').onclick=e=>downloadWorkbook(ctx,rec,e.currentTarget);
+  }
+
+  let excelLoaderPromise=null;
+  function waitExcelScript(script,timeoutMs=9000){
+    return new Promise((resolve,reject)=>{
+      if(window.ExcelJS)return resolve(window.ExcelJS);
+      let done=false;
+      const finish=(ok,value)=>{if(done)return;done=true;clearTimeout(timer);script.removeEventListener('load',onload);script.removeEventListener('error',onerror);ok?resolve(value):reject(value)};
+      const onload=()=>window.ExcelJS?finish(true,window.ExcelJS):finish(false,new Error('El generador de Excel cargó sin inicializarse.'));
+      const onerror=()=>finish(false,new Error('No se pudo cargar el generador de Excel.'));
+      const timer=setTimeout(()=>finish(false,new Error('La carga del generador de Excel demoró demasiado.')),timeoutMs);
+      script.addEventListener('load',onload,{once:true});script.addEventListener('error',onerror,{once:true});
+    });
   }
 
   function loadExcelJS(){
     if(window.ExcelJS)return Promise.resolve(window.ExcelJS);
-    return new Promise((resolve,reject)=>{
+    if(excelLoaderPromise)return excelLoaderPromise;
+    excelLoaderPromise=(async()=>{
       const prior=document.querySelector('script[data-pci-exceljs]');
-      if(prior){if(window.ExcelJS)return resolve(window.ExcelJS);prior.addEventListener('load',()=>resolve(window.ExcelJS),{once:true});prior.addEventListener('error',()=>reject(new Error('No se pudo cargar el generador de Excel.')),{once:true});return}
-      const s=document.createElement('script');s.dataset.pciExceljs='1';s.async=true;s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
-      s.onload=()=>resolve(window.ExcelJS);s.onerror=()=>reject(new Error('No se pudo cargar el generador de Excel.'));document.head.appendChild(s);
-    });
+      if(prior&&!window.ExcelJS){
+        try{return await waitExcelScript(prior,3500)}
+        catch{try{prior.remove()}catch{}}
+      }
+      const urls=[
+        'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+        'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'
+      ];
+      let lastError=null;
+      for(const url of urls){
+        const script=document.createElement('script');script.dataset.pciExceljs='1';script.async=true;script.src=url;document.head.appendChild(script);
+        try{
+          const lib=await waitExcelScript(script,10000);
+          if(lib)return lib;
+        }catch(error){lastError=error;try{script.remove()}catch{}}
+      }
+      throw lastError||new Error('No se pudo cargar el generador de Excel.');
+    })();
+    excelLoaderPromise.catch(()=>{excelLoaderPromise=null});
+    return excelLoaderPromise;
   }
 
   function setSheetHeader(row){
     row.font={bold:true};row.alignment={vertical:'middle',wrapText:true};row.height=26;
   }
 
-  async function downloadWorkbook(ctx,rec){
-    if(!criteriaReady(rec))return toast('Primero completá los cuatro criterios obligatorios.',true);
+  async function downloadWorkbook(ctx,rec,trigger=null){
+    if(!criteriaReady(rec))return toast('Primero completá y guardá los cuatro criterios obligatorios.',true);
+    const originalText=trigger?.textContent||'Descargar Excel';
+    if(trigger){trigger.disabled=true;trigger.textContent='Generando Excel…'}
     try{
       const ExcelJS=await loadExcelJS(),wb=new ExcelJS.Workbook(),teachers=teachersFor(ctx),students=studentsFor(ctx.commission.key),contents=planContents(ctx);
       wb.creator='PCI Secundaria Aprende';wb.created=new Date();
@@ -394,11 +433,18 @@
       load.eachRow(row=>row.alignment={vertical:'top',wrapText:true});
 
       const buffer=await wb.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-      a.download=`plan-${ctx.planNumber}-${slug(ctx.group.data?.name||ctx.group.name)}-${slug(ctx.commission.course)}.xlsx`;
-      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
-      toast(`Excel generado: PLAN · CRITERIOS · CARGA (${students.length} estudiantes).`);
-    }catch(e){console.error('[V114 Excel]',e);toast(e.message||String(e),true)}
+      if(!blob.size)throw new Error('El archivo Excel se generó vacío.');
+      const url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=`plan-${ctx.planNumber}-${slug(ctx.group.data?.name||ctx.group.name)}-${slug(ctx.commission.course)}.xlsx`;
+      a.style.display='none';document.body.appendChild(a);a.click();
+      setTimeout(()=>{try{a.remove()}catch{}try{URL.revokeObjectURL(url)}catch{}},5000);
+      toast(`Excel descargado: PLAN · CRITERIOS · CARGA (${students.length} estudiantes).`);
+    }catch(e){
+      console.error('[V114 Excel]',e);
+      toast('No se pudo descargar el Excel. '+(e.message||String(e)),true);
+    }finally{
+      if(trigger){trigger.disabled=false;trigger.textContent=originalText}
+    }
   }
 
   function refreshAccess(){
@@ -406,7 +452,7 @@
     if($('v114PlanCriteriaScreen')?.classList.contains('active')&&!['admin','teacher','coordinator'].includes(currentSession().role))goHome();
   }
 
-  function start(){ensureScreen();ensureEntry();refreshAccess()}
+  function start(){ensureScreen();ensureEntry();refreshAccess();loadExcelJS().catch(()=>{})}
   window.addEventListener('pci-app-ready',()=>setTimeout(start,1100));
   window.addEventListener('pci-access-changed',()=>setTimeout(refreshAccess,50));
   setTimeout(start,1900);
@@ -425,6 +471,6 @@
 
   window.PCIPlanCriteriaExcelV114={
     openModule,allContexts,scopedContexts,ensureRecord,criteriaReady,validationStats,teachersFor,studentsFor,downloadWorkbook,
-    addCriterion,removeCriterion,updateCriterion,version:VERSION
+    addCriterion,removeCriterion,updateCriterion,contextOrder,version:VERSION
   };
 })();
