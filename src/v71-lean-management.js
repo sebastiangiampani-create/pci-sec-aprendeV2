@@ -305,7 +305,7 @@
     return `<section class="card v48-section v95-coordination">
       <div class="eyebrow">Coordinaciones</div>
       <h2>Áreas y orientaciones</h2>
-      <p>Podés asignar más de un coordinador al mismo ámbito y diferenciarlos por turno. En coordinación de área, el sistema solo habilita áreas compatibles con las materias que el docente tiene asignadas.</p>
+      <p>Podés asignar más de un coordinador al mismo ámbito y diferenciarlos por turno. Un mismo docente puede tener varias coordinaciones. En coordinación de área, el sistema solo habilita áreas compatibles con las materias que el docente tiene asignadas.</p>
       <div class="v95-coord-forms">
         <div class="v95-coord-form">
           <strong>Coordinación de área</strong>
