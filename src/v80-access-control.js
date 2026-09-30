@@ -159,9 +159,9 @@
 
   function canOpen(id,access=derivedAccess()){
     if(access.role==='admin')return true;
-    if(access.role==='coordinator')return ['home','panel','offer','proposal'].includes(id);
+    if(access.role==='coordinator')return ['home','panel','offer','proposal','v114PlanCriteriaScreen'].includes(id);
     if(access.role==='teacher'){
-      if(['home','grading','bulletins','v78Attendance'].includes(id))return true;
+      if(['home','grading','bulletins','v78Attendance','v114PlanCriteriaScreen'].includes(id))return true;
       if(['panel','offer','proposal'].includes(id))return (access.allowedAreasByOrientation[state.active]||[]).length>0;
       return false;
     }
@@ -177,6 +177,7 @@
     setHidden($('v74PciTitle'),family);
     setHidden($('pciList'),family);
     setHidden($('v71LeanHomeEntry'),access.role!=='admin');
+    setHidden($('v114CriteriaEntry'),!['admin','teacher','coordinator'].includes(access.role));
     if($('v75Grading'))$('v75Grading').hidden=family;
     if($('v78AttendanceEntry'))$('v78AttendanceEntry').hidden=family;
     document.querySelectorAll('#pciList .pci-card').forEach(card=>{
