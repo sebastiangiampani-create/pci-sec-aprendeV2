@@ -318,7 +318,7 @@
       </section>
       <section class="card v114-excel-info">
         <div class="eyebrow">Excel vinculado al plan</div><h2>El archivo tendrá 3 pestañas</h2>
-        <div class="v114-three"><div><strong>PLAN</strong><span>Datos, objetivos y contenidos del plan.</span></div><div><strong>CRITERIOS</strong><span>Criterios y validación individual de cada docente.</span></div><div><strong>CARGA</strong><span>Listado de estudiantes listo para completar.</span></div></div>
+        <div class="v114-three"><div><strong>PLAN</strong><span>Datos, objetivos y contenidos del plan.</span></div><div><strong>CRITERIOS</strong><span>Criterios y validación individual de cada docente.</span></div><div><strong>CARGA</strong><span>Listado de estudiantes con un casillero por criterio y por docente.</span></div></div>
       </section>`;
     host.querySelector('[data-v114-back]').onclick=renderBrowser;
     host.querySelectorAll('[data-v114-criterion]').forEach(el=>el.oninput=()=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));
@@ -421,17 +421,23 @@
 
       const load=wb.addWorksheet('CARGA');
       const visibleCriteria=rec.criteria.filter(c=>String(c.text||'').trim());
+      const gradeTeachers=teachers.length?teachers:[{id:'sin-docente',name:'Sin docente asignado'}];
+      const criterionLoadColumns=visibleCriteria.flatMap((c,i)=>gradeTeachers.map((t,j)=>({
+        header:`Criterio ${i+1} · ${c.text} · ${t.name||'Docente'}`,
+        key:`c${i+1}_t${j+1}`,
+        width:36
+      })));
       load.columns=[
         {header:'__PLAN_KEY',key:'planKey',width:18},{header:'__STUDENT_ID',key:'studentId',width:18},{header:'DNI',key:'dni',width:16},
         {header:'Apellido',key:'lastName',width:24},{header:'Nombre',key:'firstName',width:24},
-        ...visibleCriteria.map((c,i)=>({header:`Criterio ${i+1} · ${c.text}`,key:`c${i+1}`,width:32})),
+        ...criterionLoadColumns,
         {header:'Estado del plan',key:'status',width:20},{header:'Calificación final',key:'final',width:18},{header:'Observaciones',key:'notes',width:35}
       ];
       setSheetHeader(load.getRow(1));
       students.forEach(s=>load.addRow({planKey:ctx.key,studentId:s.dni||'',dni:s.dni||'',lastName:s.lastName||'',firstName:s.firstName||'',status:'',final:'',notes:''}));
       load.getColumn(1).hidden=true;load.getColumn(2).hidden=true;
       load.views=[{state:'frozen',ySplit:1,xSplit:5}];load.autoFilter={from:'A1',to:excelColumnName(load.columnCount)+'1'};
-      const statusCol=5+visibleCriteria.length+1,finalCol=statusCol+1;
+      const statusCol=5+criterionLoadColumns.length+1,finalCol=statusCol+1;
       for(let r=2;r<=Math.max(2,load.rowCount);r++){
         load.getCell(r,statusCol).dataValidation={type:'list',allowBlank:true,formulae:['"No iniciado,En proceso,Finalizado"']};
         load.getCell(r,finalCol).dataValidation={type:'whole',operator:'between',allowBlank:true,formulae:[6,10],showErrorMessage:true,errorTitle:'Calificación',error:'La calificación final debe estar entre 6 y 10.'};
