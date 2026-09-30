@@ -373,8 +373,10 @@
     row.font={bold:true};row.alignment={vertical:'middle',wrapText:true};row.height=26;
   }
 
-  async function downloadWorkbook(ctx,rec){
-    if(!criteriaReady(rec))return toast('Primero completá los cuatro criterios obligatorios.',true);
+  async function downloadWorkbook(ctx,rec,trigger=null){
+    if(!criteriaReady(rec))return toast('Primero completá y guardá los cuatro criterios obligatorios.',true);
+    const originalText=trigger?.textContent||'Descargar Excel';
+    if(trigger){trigger.disabled=true;trigger.textContent='Generando Excel…'}
     try{
       const ExcelJS=await loadExcelJS(),wb=new ExcelJS.Workbook(),teachers=teachersFor(ctx),students=studentsFor(ctx.commission.key),contents=planContents(ctx);
       wb.creator='PCI Secundaria Aprende';wb.created=new Date();
@@ -431,11 +433,18 @@
       load.eachRow(row=>row.alignment={vertical:'top',wrapText:true});
 
       const buffer=await wb.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-      a.download=`plan-${ctx.planNumber}-${slug(ctx.group.data?.name||ctx.group.name)}-${slug(ctx.commission.course)}.xlsx`;
-      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
-      toast(`Excel generado: PLAN · CRITERIOS · CARGA (${students.length} estudiantes).`);
-    }catch(e){console.error('[V114 Excel]',e);toast(e.message||String(e),true)}
+      if(!blob.size)throw new Error('El archivo Excel se generó vacío.');
+      const url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=`plan-${ctx.planNumber}-${slug(ctx.group.data?.name||ctx.group.name)}-${slug(ctx.commission.course)}.xlsx`;
+      a.style.display='none';document.body.appendChild(a);a.click();
+      setTimeout(()=>{try{a.remove()}catch{}try{URL.revokeObjectURL(url)}catch{}},5000);
+      toast(`Excel descargado: PLAN · CRITERIOS · CARGA (${students.length} estudiantes).`);
+    }catch(e){
+      console.error('[V114 Excel]',e);
+      toast('No se pudo descargar el Excel. '+(e.message||String(e)),true);
+    }finally{
+      if(trigger){trigger.disabled=false;trigger.textContent=originalText}
+    }
   }
 
   function refreshAccess(){
