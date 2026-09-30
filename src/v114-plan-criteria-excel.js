@@ -194,10 +194,18 @@
     let card=$('v114CriteriaEntry');
     if(!card){
       card=document.createElement('section');card.id='v114CriteriaEntry';card.className='card v114-entry';
-      const management=$('v71LeanHomeEntry');
-      if(management?.parentNode)management.after(card);else ($('pciList')||home).after?.(card);
     }
     const role=currentSession().role,allowed=['admin','teacher','coordinator'].includes(role);
+    const curricular=$('v75CurricularArea'),management=$('v71LeanHomeEntry'),pciList=$('pciList');
+    if(['teacher','coordinator'].includes(role)&&curricular?.parentNode){
+      curricular.after(card);
+    }else if(management?.parentNode){
+      management.after(card);
+    }else if(pciList?.parentNode){
+      pciList.before(card);
+    }else if(card.parentNode!==home){
+      home.appendChild(card);
+    }
     card.hidden=!allowed;
     card.innerHTML=`<div><div class="eyebrow">3 · Calificaciones</div><h2>Planes, criterios y Excel</h2><p>Seleccioná un plan, construí los criterios colegiados, registrá la validación del equipo docente y descargá la planilla vinculada al plan.</p></div><button type="button" class="btn primary" data-v114-open>Abrir Calificaciones</button>`;
     card.querySelector('[data-v114-open]').onclick=openModule;
