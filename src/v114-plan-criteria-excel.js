@@ -417,6 +417,6 @@
 
   window.PCIPlanCriteriaExcelV114={
     openModule,allContexts,scopedContexts,ensureRecord,criteriaReady,validationStats,teachersFor,studentsFor,downloadWorkbook,
-    version:VERSION
+    addCriterion,removeCriterion,updateCriterion,version:VERSION
   };
 })();
