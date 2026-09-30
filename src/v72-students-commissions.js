@@ -76,6 +76,21 @@
     const ids=root().commissions[key]?.students||[];
     return ids.map(dni=>root().students[dni]).filter(Boolean).sort((a,b)=>String(a.lastName||'').localeCompare(String(b.lastName||''),'es')||String(a.firstName||'').localeCompare(String(b.firstName||''),'es'));
   }
+
+  function clearDemoStudentsOnce(){
+    const r=root();
+    if(r.demoStudentsClearedV120)return 0;
+    if(norm(state.school)!=='escuela muestra')return 0;
+    const ids=Object.keys(r.students||{});
+    r.students={};
+    for(const c of Object.values(r.commissions||{}))if(c&&typeof c==='object')c.students=[];
+    if(r.grading?.plans){
+      for(const p of Object.values(r.grading.plans||{}))if(p&&typeof p==='object')p.rows={};
+    }
+    r.demoStudentsClearedV120=true;
+    try{save()}catch{}
+    return ids.length;
+  }
   function ensureCommission(def){
     const r=root();
     r.commissions[def.key]=r.commissions[def.key]||{key:def.key,orientation:def.orientation,year:def.year,division:def.division,course:def.course,students:[]};
@@ -257,7 +272,11 @@
   }
 
   function refresh(){clearTimeout(timer);timer=setTimeout(render,80)}
-  function start(){refresh();}
+  function start(){
+    const removed=clearDemoStudentsOnce();
+    refresh();
+    if(removed)setTimeout(()=>toast(`${removed} alumno${removed===1?'':'s'} de muestra eliminado${removed===1?'':'s'}.`),120);
+  }
   window.addEventListener('pci-app-ready',()=>setTimeout(start,700));
   document.addEventListener('click',e=>{if(e.target.closest('[data-v71n-open],#openInstitutional,#openInstitutionalGeneral'))setTimeout(start,250)},true);
   setTimeout(start,1500);
@@ -274,5 +293,5 @@
   `;
   document.head.appendChild(style);
 
-  window.PCIStudentsCommissionsV72={render,commissionDefs,studentsFor,downloadTemplate,importStudents};
+  window.PCIStudentsCommissionsV72={render,commissionDefs,studentsFor,downloadTemplate,importStudents,clearDemoStudentsOnce};
 })();
