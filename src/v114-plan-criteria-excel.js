@@ -318,7 +318,7 @@
       </section>
       <section class="card v114-excel-info">
         <div class="eyebrow">Excel vinculado al plan</div><h2>El archivo tendrá 3 pestañas</h2>
-        <div class="v114-three"><div><strong>PLAN</strong><span>Datos, objetivos y contenidos del plan.</span></div><div><strong>CRITERIOS</strong><span>Criterios y validación individual de cada docente.</span></div><div><strong>CARGA</strong><span>Listado de estudiantes listo para completar.</span></div></div>
+        <div class="v114-three"><div><strong>PLAN</strong><span>Datos, objetivos y contenidos del plan.</span></div><div><strong>CRITERIOS</strong><span>Criterios y validación individual de cada docente.</span></div><div><strong>CARGA</strong><span>Listado de estudiantes con un casillero por criterio y por docente.</span></div></div>
       </section>`;
     host.querySelector('[data-v114-back]').onclick=renderBrowser;
     host.querySelectorAll('[data-v114-criterion]').forEach(el=>el.oninput=()=>updateCriterion(rec,Number(el.dataset.v114Criterion),el.value));
